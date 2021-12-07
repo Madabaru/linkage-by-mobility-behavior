@@ -87,38 +87,49 @@ fn eval_step(
             .map(|idx| click_traces.get(*idx).unwrap().clone())
             .collect();
 
-        let website_set = get_unique_set(
+        let speed_set = get_unique_set(
             target_click_trace,
             &sampled_click_traces,
-            &DataFields::Website,
+            &DataFields::Speed,
         );
-        let code_set = get_unique_set(target_click_trace, &sampled_click_traces, &DataFields::Code);
-        let location_set = get_unique_set(
+        let heading_set = get_unique_set(
             target_click_trace,
             &sampled_click_traces,
-            &DataFields::Location,
+            &DataFields::Heading,
         );
-        let category_set = get_unique_set(
+        let street_set = get_unique_set(
             target_click_trace,
             &sampled_click_traces,
-            &DataFields::Category,
+            &DataFields::Street,
+        );
+        let postcode_set = get_unique_set(
+            target_click_trace,
+            &sampled_click_traces,
+            &DataFields::Postcode,
+        );
+        let state_set = get_unique_set(
+            target_click_trace,
+            &sampled_click_traces,
+            &DataFields::State,
         );
 
         let vectorized_target = click_trace::vectorize_click_trace(
             target_click_trace,
-            &website_set,
-            &code_set,
-            &location_set,
-            &category_set,
+            &speed_set,
+            &heading_set,
+            &street_set,
+            &postcode_set,
+            &state_set,
         );
 
         if config.typical {
             let vect_typ_click_trace = click_trace::gen_typical_vect_click_trace(
                 &sampled_click_traces,
-                &website_set,
-                &code_set,
-                &location_set,
-                &category_set,
+                &speed_set,
+                &heading_set,
+                &street_set,
+                &postcode_set,
+                &state_set,
             );
             let dist = compute_dist(
                 &config.fields,
@@ -128,13 +139,14 @@ fn eval_step(
             );
             tuples.push((OrderedFloat(dist), client.clone()));
         } else {
-            for sample_hist in sampled_click_traces.into_iter() {
+            for sample_click_trace in sampled_click_traces.into_iter() {
                 let vectorized_ref = click_trace::vectorize_click_trace(
-                    &sample_hist,
-                    &website_set,
-                    &code_set,
-                    &location_set,
-                    &category_set,
+                    &sample_click_trace,
+                    &speed_set,
+                    &heading_set,
+                    &street_set,
+                    &postcode_set,
+                    &state_set,
                 );
                 let dist =
                     compute_dist(&config.fields, &metric, &vectorized_target, &vectorized_ref);
@@ -181,21 +193,25 @@ where
     // Iterate over all data fields that are considered
     for field in fields.into_iter() {
         let (target_vector, ref_vector) = match field {
-            DataFields::Website => (
-                target_click_trace.website.clone(),
-                ref_click_trace.website.clone(),
+            DataFields::Speed => (
+                target_click_trace.speed.clone(),
+                ref_click_trace.speed.clone(),
             ),
-            DataFields::Code => (
-                target_click_trace.code.clone(),
-                ref_click_trace.code.clone(),
+            DataFields::Heading => (
+                target_click_trace.heading.clone(),
+                ref_click_trace.heading.clone(),
             ),
-            DataFields::Location => (
-                target_click_trace.location.clone(),
-                ref_click_trace.location.clone(),
+            DataFields::Street => (
+                target_click_trace.street.clone(),
+                ref_click_trace.street.clone(),
             ),
-            DataFields::Category => (
-                target_click_trace.category.clone(),
-                ref_click_trace.category.clone(),
+            DataFields::Postcode => (
+                target_click_trace.postcode.clone(),
+                ref_click_trace.postcode.clone(),
+            ),
+            DataFields::State => (
+                target_click_trace.state.clone(),
+                ref_click_trace.state.clone(),
             ),
             DataFields::Day => (target_click_trace.day.clone(), ref_click_trace.day.clone()),
             DataFields::Hour => (
@@ -230,19 +246,21 @@ pub fn get_unique_set(
     field: &DataFields,
 ) -> IndexSet<String> {
     let mut vector: Vec<String> = match field {
-        DataFields::Website => target_click_trace.website.keys().cloned().collect(),
-        DataFields::Code => target_click_trace.code.keys().cloned().collect(),
-        DataFields::Category => target_click_trace.category.keys().cloned().collect(),
-        DataFields::Location => Vec::from([target_click_trace.location.clone()]),
+        DataFields::Speed => target_click_trace.speed.keys().cloned().collect(),
+        DataFields::Heading => target_click_trace.heading.keys().cloned().collect(),
+        DataFields::Street => target_click_trace.street.keys().cloned().collect(),
+        DataFields::Postcode => target_click_trace.postcode.keys().cloned().collect(),
+        DataFields::State => target_click_trace.state.keys().cloned().collect(),
         _ => panic!("Error: unknown data field supplied: {}", field),
     };
 
     for click_trace in sampled_click_traces.into_iter() {
         match field {
-            DataFields::Website => vector.extend(click_trace.website.keys().cloned()),
-            DataFields::Code => vector.extend(click_trace.code.keys().cloned()),
-            DataFields::Category => vector.extend(click_trace.category.keys().cloned()),
-            DataFields::Location => vector.push(click_trace.location.clone()),
+            DataFields::Speed => vector.extend(click_trace.speed.keys().cloned()),
+            DataFields::Heading => vector.extend(click_trace.heading.keys().cloned()),
+            DataFields::Street => vector.extend(click_trace.street.keys().cloned()),
+            DataFields::Postcode => vector.extend(click_trace.postcode.keys().cloned()),
+            DataFields::State => vector.extend(click_trace.state.keys().cloned()),
             _ => panic!("Error: unknown data field supplied: {}", field),
         }
     }

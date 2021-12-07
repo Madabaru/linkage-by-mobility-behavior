@@ -22,12 +22,11 @@ use serde::Deserialize;
 pub struct Record {
     pub client_id: String,
     pub timestamp: f64,
-    pub lat: String,
-    pub lon: String,
     pub heading: String,
     pub speed: String,
     pub street: String,
     pub postcode: String,
+    pub state: String
 }
 
 #[derive(PartialEq, Debug)]
@@ -108,7 +107,7 @@ pub fn parse_to_frequency(
                 heading: HashMap::new(),
                 street: HashMap::new(),
                 postcode: HashMap::new(),
-                state: maths::zeros_u32(16),
+                state: HashMap::new(),
                 hour: maths::zeros_u32(24),
                 day: maths::zeros_u32(7),
                 start_time: record.timestamp,
@@ -148,6 +147,11 @@ pub fn parse_to_frequency(
             .postcode
             .entry(record.postcode.clone())
             .or_insert(0) += 1;
+        *current_click_trace
+            .state
+            .entry(record.state.clone())
+            .or_insert(0) += 1;
+
 
         prev_time = record.timestamp;
         prev_client = record.client_id;
@@ -173,9 +177,11 @@ pub fn parse_to_sequence(
     let mut client_to_seq_map: BTreeMap<u32, Vec<SeqClickTrace>> = BTreeMap::new();
     let mut reader = csv::Reader::from_path(&config.path)?;
 
-    let mut website_set: IndexSet<String> = IndexSet::new();
-    let mut code_set: IndexSet<String> = IndexSet::new();
-    let mut category_set: IndexSet<String> = IndexSet::new();
+    let mut street_set: IndexSet<String> = IndexSet::new();
+    let mut postcode_set: IndexSet<String> = IndexSet::new();
+    let mut state_set: IndexSet<String> = IndexSet::new();
+    let mut speed_set: IndexSet<String> = IndexSet::new();
+    let mut heading_set: IndexSet<String> = IndexSet::new();
 
     for result in reader.deserialize() {
         let record: Record = result?;
@@ -196,7 +202,6 @@ pub fn parse_to_sequence(
         {
             if !click_traces_list.is_empty() {
                 if click_trace_len < config.min_click_trace_len
-                    || click_traces_list.last().unwrap().click_rate > config.max_click_rate
                     || click_traces_list.last().unwrap().end_time
                         - click_traces_list.last().unwrap().start_time
                         > config.max_click_trace_duration
@@ -207,13 +212,14 @@ pub fn parse_to_sequence(
 
             let click_trace = SeqClickTrace {
                 street: Vec::with_capacity(10),
-                code: Vec::with_capacity(10),
-                category: Vec::with_capacity(10),
                 hour: Vec::with_capacity(10),
                 day: 0,
                 start_time: record.timestamp,
                 end_time: record.timestamp,
-                click_rate: 0.0,
+                speed: Vec::with_capacity(10),
+                heading: Vec::with_capacity(10),
+                postcode: Vec::with_capacity(10),
+                state: Vec::with_capacity(10),
             };
             click_traces_list.push(click_trace);
             click_trace_len = 0;
@@ -225,29 +231,34 @@ pub fn parse_to_sequence(
         let date = UNIX_EPOCH + Duration::from_secs_f64(record.timestamp.clone());
         let datetime = DateTime::<Utc>::from(date);
 
-        website_set.insert(record.website.clone());
-        code_set.insert(record.code.clone());
-        category_set.insert(record.category.clone());
+        street_set.insert(record.street.clone());
+        postcode_set.insert(record.postcode.clone());
+        state_set.insert(record.state.clone());
+        heading_set.insert(record.heading.clone());
+        speed_set.insert(record.speed.clone());
 
         current_click_trace.hour.push(datetime.hour());
         current_click_trace.day = datetime.weekday().num_days_from_monday();
         current_click_trace.end_time = record.timestamp;
-        current_click_trace.click_rate = click_trace_len as f64
-            / (current_click_trace.end_time - current_click_trace.start_time);
 
         current_click_trace
-            .website
-            .push(u32::try_from(website_set.get_full(&record.website).unwrap().0).unwrap());
+            .street
+            .push(u32::try_from(street_set.get_full(&record.street).unwrap().0).unwrap());
         current_click_trace
-            .code
-            .push(u32::try_from(code_set.get_full(&record.code).unwrap().0).unwrap());
+            .postcode
+            .push(u32::try_from(postcode_set.get_full(&record.postcode).unwrap().0).unwrap());
         current_click_trace
-            .category
-            .push(u32::try_from(category_set.get_full(&record.category).unwrap().0).unwrap());
+            .state
+            .push(u32::try_from(state_set.get_full(&record.state).unwrap().0).unwrap());
+        current_click_trace
+            .heading
+            .push(u32::try_from(heading_set.get_full(&record.heading).unwrap().0).unwrap());
+        current_click_trace
+            .speed
+            .push(u32::try_from(speed_set.get_full(&record.speed).unwrap().0).unwrap());
 
         prev_time = record.timestamp;
         prev_client = record.client_id;
-        prev_location = record.location;
         click_trace_len += 1;
     }
 

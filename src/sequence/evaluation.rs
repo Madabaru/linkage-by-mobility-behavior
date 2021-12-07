@@ -133,30 +133,34 @@ fn compute_alignment_scores(
 
     for field in fields.into_iter() {
         let score = match field {
-            DataFields::Website => compute_sequence_alignment(
+            DataFields::Speed => compute_sequence_alignment(
                 strategy,
                 scope,
                 scoring_matrix,
-                target_click_trace.website.clone(),
-                ref_click_trace.website.clone(),
+                target_click_trace.speed.clone(),
+                ref_click_trace.speed.clone(),
             ),
-            DataFields::Category => compute_sequence_alignment(
+            DataFields::Heading => compute_sequence_alignment(
                 strategy,
                 scope,
                 scoring_matrix,
-                target_click_trace.category.clone(),
-                ref_click_trace.category.clone(),
+                target_click_trace.heading.clone(),
+                ref_click_trace.heading.clone(),
             ),
-            DataFields::Code => compute_sequence_alignment(
+            DataFields::Street => compute_sequence_alignment(
                 strategy,
                 scope,
                 scoring_matrix,
-                target_click_trace.code.clone(),
-                ref_click_trace.code.clone(),
+                target_click_trace.street.clone(),
+                ref_click_trace.street.clone(),
             ),
-            DataFields::Location => compute_similarity_score(
-                target_click_trace.location.clone(),
-                ref_click_trace.location.clone(),
+            DataFields::Postcode => compute_similarity_score(
+                target_click_trace.postcode.clone(),
+                ref_click_trace.postcode.clone(),
+            ),
+            DataFields::State => compute_similarity_score(
+                target_click_trace.state.clone(),
+                ref_click_trace.state.clone(),
             ),
             DataFields::Day => compute_similarity_score(
                 target_click_trace.day.clone(),
@@ -172,10 +176,11 @@ fn compute_alignment_scores(
         };
 
         match field {
-            DataFields::Code => unnormalized_align_scores.push(score),
-            DataFields::Website => unnormalized_align_scores.push(score),
-            DataFields::Location => align_scores.push(score),
-            DataFields::Category => unnormalized_align_scores.push(score),
+            DataFields::Speed => unnormalized_align_scores.push(score),
+            DataFields::Heading => unnormalized_align_scores.push(score),
+            DataFields::Street => unnormalized_align_scores.push(score),
+            DataFields::Postcode => unnormalized_align_scores.push(score),
+            DataFields::State => unnormalized_align_scores.push(score),
             DataFields::Day => align_scores.push(score),
             DataFields::Hour => unnormalized_align_scores.push(score),
         }

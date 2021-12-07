@@ -1,8 +1,8 @@
 use crate::frequency::maths;
 use crate::utils;
 
+use indexmap::IndexSet;
 use std::collections::HashMap;
-
 
 #[derive(Debug, Clone)]
 pub struct FreqClickTrace {
@@ -10,7 +10,7 @@ pub struct FreqClickTrace {
     pub heading: HashMap<String, u32>,
     pub street: HashMap<String, u32>,
     pub postcode: HashMap<String, u32>,
-    pub state: Vec<u32>,
+    pub state: HashMap<String, u32>,
     pub day: Vec<u32>,
     pub hour: Vec<u32>,
     pub start_time: f64,
@@ -19,62 +19,70 @@ pub struct FreqClickTrace {
 
 #[derive(Debug, Clone)]
 pub struct VectFreqClickTrace<T> {
-    pub website: Vec<T>,
-    pub code: Vec<T>,
-    pub location: Vec<T>,
-    pub category: Vec<T>,
+    pub speed: Vec<T>,
+    pub heading: Vec<T>,
+    pub street: Vec<T>,
+    pub postcode: Vec<T>,
+    pub state: Vec<T>,
     pub hour: Vec<T>,
     pub day: Vec<T>,
 }
 
 pub fn gen_typical_vect_click_trace(
     click_traces: &Vec<FreqClickTrace>,
-    website_set: &IndexSet<String>,
-    code_set: &IndexSet<String>,
-    location_set: &IndexSet<String>,
-    category_set: &IndexSet<String>,
+    speed_set: &IndexSet<String>,
+    heading_set: &IndexSet<String>,
+    street_set: &IndexSet<String>,
+    postcode_set: &IndexSet<String>,
+    state_set: &IndexSet<String>,
 ) -> VectFreqClickTrace<f64> {
-    let mut website_vec = maths::zeros_f64(website_set.len());
-    let mut code_vec = maths::zeros_f64(code_set.len());
-    let mut location_vec = maths::zeros_f64(location_set.len());
-    let mut category_vec = maths::zeros_f64(category_set.len());
+    let mut speed_vec = maths::zeros_f64(speed_set.len());
+    let mut heading_vec = maths::zeros_f64(heading_set.len());
+    let mut street_vec = maths::zeros_f64(state_set.len());
+    let mut postcode_vec = maths::zeros_f64(postcode_set.len());
+    let mut state_vec = maths::zeros_f64(state_set.len());
     let mut hour_vec = maths::zeros_f64(24);
     let mut day_vec = maths::zeros_f64(7);
 
     for click_trace in click_traces.into_iter() {
         let vect_click_trace = vectorize_click_trace(
             click_trace,
-            website_set,
-            code_set,
-            location_set,
-            category_set,
+            speed_set,
+            heading_set,
+            street_set,
+            postcode_set,
+            state_set,
         );
-        website_vec = maths::add(website_vec, &vect_click_trace.website);
-        code_vec = maths::add(code_vec, &vect_click_trace.code);
-        location_vec = maths::add(location_vec, &vect_click_trace.location);
-        category_vec = maths::add(category_vec, &vect_click_trace.category);
+        speed_vec = maths::add(speed_vec, &vect_click_trace.speed);
+        heading_vec = maths::add(heading_vec, &vect_click_trace.heading);
+        street_vec = maths::add(street_vec, &vect_click_trace.street);
+        postcode_vec = maths::add(postcode_vec, &vect_click_trace.postcode);
+        state_vec = maths::add(state_vec, &vect_click_trace.state);
         day_vec = maths::add(day_vec, &vect_click_trace.day);
         hour_vec = maths::add(hour_vec, &vect_click_trace.hour);
     }
 
-    let website_len = website_vec.len() as f64;
-    website_vec.iter_mut().for_each(|a| *a /= website_len);
-    let code_len = code_vec.len() as f64;
-    code_vec.iter_mut().for_each(|a| *a /= code_len);
-    let location_len = location_vec.len() as f64;
-    location_vec.iter_mut().for_each(|a| *a /= location_len);
-    let category_len = category_vec.len() as f64;
-    category_vec.iter_mut().for_each(|a| *a /= category_len);
-    let hour_len = category_vec.len() as f64;
+    let speed_len = speed_vec.len() as f64;
+    speed_vec.iter_mut().for_each(|a| *a /= speed_len);
+    let heading_len = heading_vec.len() as f64;
+    heading_vec.iter_mut().for_each(|a| *a /= heading_len);
+    let street_len = street_vec.len() as f64;
+    street_vec.iter_mut().for_each(|a| *a /= street_len);
+    let postcode_len = postcode_vec.len() as f64;
+    postcode_vec.iter_mut().for_each(|a| *a /= postcode_len);
+    let state_len = state_vec.len() as f64;
+    state_vec.iter_mut().for_each(|a| *a /= state_len);
+    let hour_len = hour_vec.len() as f64;
     hour_vec.iter_mut().for_each(|a| *a /= hour_len);
-    let day_len = category_vec.len() as f64;
+    let day_len = day_vec.len() as f64;
     day_vec.iter_mut().for_each(|a| *a /= day_len);
 
     let typical_vect_click_trace = VectFreqClickTrace {
-        website: website_vec,
-        code: code_vec,
-        location: location_vec,
-        category: category_vec,
+        speed: speed_vec,
+        heading: heading_vec,
+        street: street_vec,
+        postcode: postcode_vec,
+        state: state_vec,
         day: day_vec,
         hour: hour_vec,
     };
@@ -84,16 +92,18 @@ pub fn gen_typical_vect_click_trace(
 // Transform each histogram (as a hashmap) in a click trace into a vector to speed up further computations
 pub fn vectorize_click_trace(
     click_trace: &FreqClickTrace,
-    website_set: &IndexSet<String>,
-    code_set: &IndexSet<String>,
-    location_set: &IndexSet<String>,
-    category_set: &IndexSet<String>,
+    speed_set: &IndexSet<String>,
+    heading_set: &IndexSet<String>,
+    street_set: &IndexSet<String>,
+    postcode_set: &IndexSet<String>,
+    state_set: &IndexSet<String>,
 ) -> VectFreqClickTrace<u32> {
     let vectorized_click_trace = VectFreqClickTrace {
-        website: utils::gen_vector_from_freq_map(&click_trace.website, website_set),
-        code: utils::gen_vector_from_freq_map(&click_trace.code, code_set),
-        location: utils::gen_vector_from_str(&click_trace.location, location_set),
-        category: utils::gen_vector_from_freq_map(&click_trace.category, category_set),
+        speed: utils::gen_vector_from_freq_map(&click_trace.speed, speed_set),
+        heading: utils::gen_vector_from_freq_map(&click_trace.heading, heading_set),
+        street: utils::gen_vector_from_freq_map(&click_trace.street, street_set),
+        postcode: utils::gen_vector_from_freq_map(&click_trace.postcode, postcode_set),
+        state: utils::gen_vector_from_freq_map(&click_trace.state, state_set),
         day: click_trace.hour.clone(),
         hour: click_trace.day.clone(),
     };
