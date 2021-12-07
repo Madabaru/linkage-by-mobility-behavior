@@ -68,7 +68,6 @@ pub fn parse_to_frequency(
     
     let mut prev_time: f64 = 0.0;
     let mut prev_client = String::new();
-    let mut prev_location = String::new();
     let mut click_trace_len: usize = 0;
     let mut client_id: u32 = 0;
 
@@ -170,7 +169,6 @@ pub fn parse_to_sequence(
 ) -> Result<BTreeMap<u32, Vec<SeqClickTrace>>, Box<dyn Error>> {
     let mut prev_time: f64 = 0.0;
     let mut prev_client = String::new();
-    let mut prev_location = String::new();
     let mut click_trace_len: usize = 0;
     let mut client_id: u32 = 0;
 

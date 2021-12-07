@@ -2,8 +2,8 @@ use crate::cli::Config;
 
 use indexmap::set::IndexSet;
 use ordered_float::OrderedFloat;
-use std::io::{prelude::*, BufWriter};
 use std::collections::HashMap;
+use std::io::{prelude::*, BufWriter};
 
 const OUTPUT_PATH: &str = "tmp/output";
 const EVAL_PATH: &str = "tmp/evaluation";
