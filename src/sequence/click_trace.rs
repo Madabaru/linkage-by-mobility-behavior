@@ -108,3 +108,15 @@ pub fn gen_typical_click_trace(click_traces: &Vec<SeqClickTrace>) -> SeqClickTra
     };
     typical_click_trace
 }
+
+pub fn reverse_click_trace(click_trace: &SeqClickTrace) -> SeqClickTrace {
+    let mut reverse_click_trace = click_trace.clone();
+    reverse_click_trace.speed.reverse();
+    reverse_click_trace.heading.reverse();
+    reverse_click_trace.street.reverse();
+    reverse_click_trace.postcode.reverse();
+    reverse_click_trace.state.reverse();
+    reverse_click_trace
+}
+
+

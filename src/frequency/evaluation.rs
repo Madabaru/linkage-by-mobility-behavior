@@ -77,7 +77,7 @@ fn eval_step(
         .unwrap()
         .get(*target_idx)
         .unwrap();
-
+        
     let mut tuples: Vec<(OrderedFloat<f64>, u32)> = Vec::with_capacity(client_to_freq_map.len());
 
     for (client, click_traces) in client_to_freq_map.into_iter() {
@@ -112,6 +112,26 @@ fn eval_step(
             &sampled_click_traces,
             &DataFields::State,
         );
+        let highway_set = get_unique_set(
+            target_click_trace,
+            &sampled_click_traces,
+            &DataFields::Highway,
+        );
+        let hamlet_set = get_unique_set(
+            target_click_trace,
+            &sampled_click_traces,
+            &DataFields::Hamlet,
+        );
+        let suburb_set = get_unique_set(
+            target_click_trace,
+            &sampled_click_traces,
+            &DataFields::Suburb,
+        );
+        let village_set = get_unique_set(
+            target_click_trace,
+            &sampled_click_traces,
+            &DataFields::Village,
+        );
 
         let vectorized_target = click_trace::vectorize_click_trace(
             target_click_trace,
@@ -120,24 +140,28 @@ fn eval_step(
             &street_set,
             &postcode_set,
             &state_set,
+            &highway_set, 
+            &hamlet_set, 
+            &suburb_set,
+            &village_set
         );
 
         if config.typical {
-            let vect_typ_click_trace = click_trace::gen_typical_vect_click_trace(
-                &sampled_click_traces,
-                &speed_set,
-                &heading_set,
-                &street_set,
-                &postcode_set,
-                &state_set,
-            );
-            let dist = compute_dist(
-                &config.fields,
-                &metric,
-                &vectorized_target,
-                &vect_typ_click_trace,
-            );
-            tuples.push((OrderedFloat(dist), client.clone()));
+            // let vect_typ_click_trace = click_trace::gen_typical_vect_click_trace(
+            //     &sampled_click_traces,
+            //     &speed_set,
+            //     &heading_set,
+            //     &street_set,
+            //     &postcode_set,
+            //     &state_set,
+            // );
+            // let dist = compute_dist(
+            //     &config.fields,
+            //     &metric,
+            //     &vectorized_target,
+            //     &vect_typ_click_trace,
+            // );
+            // tuples.push((OrderedFloat(dist), client.clone()));
         } else {
             for sample_click_trace in sampled_click_traces.into_iter() {
                 let vectorized_ref = click_trace::vectorize_click_trace(
@@ -147,6 +171,10 @@ fn eval_step(
                     &street_set,
                     &postcode_set,
                     &state_set,
+                    &highway_set, 
+                    &hamlet_set, 
+                    &suburb_set,
+                    &village_set
                 );
                 let dist =
                     compute_dist(&config.fields, &metric, &vectorized_target, &vectorized_ref);
@@ -157,7 +185,7 @@ fn eval_step(
     tuples.sort_unstable_by_key(|k| k.0);
     let cutoff: usize = (0.1 * client_to_freq_map.len() as f64) as usize;
     let is_top_10_percent = utils::is_target_in_top_k(client_target, &tuples[..cutoff]);
-    let is_top_10: bool = utils::is_target_in_top_k(client_target, &tuples[..1]);
+    let is_top_10: bool = utils::is_target_in_top_k(client_target, &tuples[..10   ]);
     (
         client_target.clone(),
         tuples[0].1,
@@ -213,6 +241,22 @@ where
                 target_click_trace.state.clone(),
                 ref_click_trace.state.clone(),
             ),
+            DataFields::Highway => (
+                target_click_trace.highway.clone(),
+                ref_click_trace.highway.clone(),
+            ),
+            DataFields::Hamlet => (
+                target_click_trace.hamlet.clone(),
+                ref_click_trace.hamlet.clone(),
+            ),
+            DataFields::Suburb => (
+                target_click_trace.suburb.clone(),
+                ref_click_trace.suburb.clone(),
+            ),
+            DataFields::Village => (
+                target_click_trace.state.clone(),
+                ref_click_trace.state.clone(),
+            ),
             DataFields::Day => (target_click_trace.day.clone(), ref_click_trace.day.clone()),
             DataFields::Hour => (
                 target_click_trace.hour.clone(),
@@ -224,11 +268,10 @@ where
             DistanceMetric::Euclidean => metrics::euclidean_dist(target_vector, ref_vector),
             DistanceMetric::Manhatten => metrics::manhatten_dist(target_vector, ref_vector),
             DistanceMetric::Cosine => metrics::consine_dist(target_vector, ref_vector),
-            DistanceMetric::Jaccard => metrics::jaccard_dist(target_vector, ref_vector),
-            // DistanceMetric::Jaccard => todo!(),
+            DistanceMetric::NonIntersection => metrics::non_intersection_dist(target_vector, ref_vector),
             DistanceMetric::Bhattacharyya => metrics::bhattacharyya_dist(target_vector, ref_vector),
-            DistanceMetric::KullbrackLeibler => metrics::kl_dist(target_vector, ref_vector),
-            DistanceMetric::TotalVariation => metrics::total_var_dist(target_vector, ref_vector),
+            DistanceMetric::KullbrackLeibler => metrics::kullbrack_leibler_dist(target_vector, ref_vector),
+            DistanceMetric::TotalVariation => metrics::total_variation_dist(target_vector, ref_vector),
             DistanceMetric::JeffriesMatusita => metrics::jeffries_dist(target_vector, ref_vector),
             DistanceMetric::ChiSquared => metrics::chi_squared_dist(target_vector, ref_vector),
         };
@@ -251,6 +294,10 @@ pub fn get_unique_set(
         DataFields::Street => target_click_trace.street.keys().cloned().collect(),
         DataFields::Postcode => target_click_trace.postcode.keys().cloned().collect(),
         DataFields::State => target_click_trace.state.keys().cloned().collect(),
+        DataFields::Highway => target_click_trace.highway.keys().cloned().collect(),
+        DataFields::Hamlet => target_click_trace.hamlet.keys().cloned().collect(),
+        DataFields::Suburb => target_click_trace.suburb.keys().cloned().collect(),
+        DataFields::Village => target_click_trace.village.keys().cloned().collect(),
         _ => panic!("Error: unknown data field supplied: {}", field),
     };
 
@@ -261,6 +308,10 @@ pub fn get_unique_set(
             DataFields::Street => vector.extend(click_trace.street.keys().cloned()),
             DataFields::Postcode => vector.extend(click_trace.postcode.keys().cloned()),
             DataFields::State => vector.extend(click_trace.state.keys().cloned()),
+            DataFields::Highway => vector.extend(click_trace.highway.keys().cloned()),
+            DataFields::Hamlet => vector.extend(click_trace.hamlet.keys().cloned()),
+            DataFields::Suburb => vector.extend(click_trace.suburb.keys().cloned()),
+            DataFields::Village => vector.extend(click_trace.village.keys().cloned()),
             _ => panic!("Error: unknown data field supplied: {}", field),
         }
     }

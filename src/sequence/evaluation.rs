@@ -82,6 +82,7 @@ fn eval_step(
             .collect();
 
         if config.typical {
+            
             let typical_click_trace =
                 sequence::click_trace::gen_typical_click_trace(&sampled_click_traces);
 
@@ -94,6 +95,7 @@ fn eval_step(
                 &typical_click_trace,
             );
             tuples.push((OrderedFloat(score), client.clone()));
+        
         } else {
             for sample_click_trace in sampled_click_traces.into_iter() {
                 let score = compute_alignment_scores(
@@ -111,7 +113,7 @@ fn eval_step(
     tuples.sort_unstable_by_key(|k| Reverse(k.0));
     let cutoff: usize = (0.1 * client_to_seq_map.len() as f64) as usize;
     let is_top_10_percent = utils::is_target_in_top_k(client_target, &tuples[..cutoff]);
-    let is_top_10: bool = utils::is_target_in_top_k(client_target, &tuples[..1]);
+    let is_top_10: bool = utils::is_target_in_top_k(client_target, &tuples[..10]);
     (
         client_target.clone(),
         tuples[0].1,
@@ -173,6 +175,10 @@ fn compute_alignment_scores(
                 target_click_trace.hour.clone(),
                 ref_click_trace.hour.clone(),
             ),
+            DataFields::Highway => todo!(),
+            DataFields::Hamlet => todo!(),
+            DataFields::Suburb => todo!(),
+            DataFields::Village => todo!(),
         };
 
         match field {
@@ -183,6 +189,10 @@ fn compute_alignment_scores(
             DataFields::State => unnormalized_align_scores.push(score),
             DataFields::Day => align_scores.push(score),
             DataFields::Hour => unnormalized_align_scores.push(score),
+            DataFields::Highway => todo!(),
+            DataFields::Hamlet => todo!(),
+            DataFields::Suburb => todo!(),
+            DataFields::Village => todo!(),
         }
     }
 

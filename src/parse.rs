@@ -26,7 +26,11 @@ pub struct Record {
     pub speed: String,
     pub street: String,
     pub postcode: String,
-    pub state: String
+    pub state: String,
+    pub highway: String,
+    pub hamlet: String, 
+    pub suburb: String, 
+    pub village: String
 }
 
 #[derive(PartialEq, Debug)]
@@ -37,7 +41,12 @@ pub enum DataFields {
     Heading,
     Street,
     Postcode,
-    State
+    State,
+    Highway,
+    Hamlet, 
+    Suburb, 
+    Village
+
 }
 
 impl Display for DataFields {
@@ -57,6 +66,10 @@ impl FromStr for DataFields {
             "street" => Ok(Self::Street),
             "postcode" => Ok(Self::Postcode),
             "state" => Ok(Self::State),
+            "highway" => Ok(Self::Highway),
+            "hamlet" => Ok(Self::Hamlet),
+            "suburb" => Ok(Self::Suburb),
+            "village" => Ok(Self::Village),
             x => panic!("Error: Wrong data field supplied: {:?}", x),
         }
     }
@@ -98,6 +111,9 @@ pub fn parse_to_frequency(
                         > config.max_click_trace_duration
                 {
                     click_traces_list.pop();
+                } else if click_traces_list.last().unwrap().street.keys().len() <= 2 && (click_traces_list.last().unwrap().street.contains_key("A 5") || click_traces_list.last().unwrap().street.contains_key("A 67")) {
+                    println!("Hi");
+                    click_traces_list.pop();
                 }
             }
 
@@ -106,6 +122,10 @@ pub fn parse_to_frequency(
                 heading: HashMap::new(),
                 street: HashMap::new(),
                 postcode: HashMap::new(),
+                highway: HashMap::new(),
+                hamlet: HashMap::new(),
+                suburb: HashMap::new(),
+                village: HashMap::new(),
                 state: HashMap::new(),
                 hour: maths::zeros_u32(24),
                 day: maths::zeros_u32(7),
@@ -148,6 +168,22 @@ pub fn parse_to_frequency(
             .or_insert(0) += 1;
         *current_click_trace
             .state
+            .entry(record.state.clone())
+            .or_insert(0) += 1;
+        *current_click_trace
+            .highway
+            .entry(record.state.clone())
+            .or_insert(0) += 1;
+        *current_click_trace
+            .hamlet
+            .entry(record.state.clone())
+            .or_insert(0) += 1;
+        *current_click_trace
+            .suburb
+            .entry(record.state.clone())
+            .or_insert(0) += 1;
+        *current_click_trace
+            .village
             .entry(record.state.clone())
             .or_insert(0) += 1;
 
