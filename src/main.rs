@@ -25,42 +25,42 @@ fn main() {
     // Approach 1: Sequence alignment-based
     if config.approach == "sequence" {
 
-        // log::info!("Parsing data for sequence alignment-based approach...");
-        // let client_to_seq_map: BTreeMap<u32, Vec<SeqClickTrace>> =
-        //     parse::parse_to_sequence(&config).unwrap();
+        log::info!("Parsing data for sequence alignment-based approach...");
+        let client_to_seq_map: BTreeMap<u32, Vec<SeqClickTrace>> =
+            parse::parse_to_sequence(&config).unwrap();
 
-        // log::info!("Sampling clients...");
-        // let client_to_target_idx_map: HashMap<u32, usize> =
-        //     sample::gen_test_data(&client_to_seq_map, &mut rng, config.client_sample_size);
+        log::info!("Sampling clients...");
+        let client_to_target_idx_map: HashMap<u32, usize> =
+            sample::gen_test_data(&client_to_seq_map, &mut rng, config.client_sample_size);
 
-        // if !config.typical {
+        if !config.typical {
 
-        //     log::info!("Sampling click traces per client...");
-        //     let client_to_sample_idx_map: HashMap<u32, Vec<usize>> =
-        //         sample::get_train_data(&client_to_seq_map, &mut rng, config.click_trace_sample_size);
+            log::info!("Sampling click traces per client...");
+            let client_to_sample_idx_map: HashMap<u32, Vec<usize>> =
+                sample::get_train_data(&client_to_seq_map, &mut rng, config.click_trace_sample_size);
 
-        //     log::info!("Starting the evaluation...");
-        //     sequence::evaluation::eval(
-        //         &config,
-        //         &client_to_seq_map,
-        //         &client_to_target_idx_map,
-        //         &client_to_sample_idx_map,
-        //     );
+            log::info!("Starting the evaluation...");
+            sequence::evaluation::eval(
+                &config,
+                &client_to_seq_map,
+                &client_to_target_idx_map,
+                &client_to_sample_idx_map,
+            );
             
-        // } else {
+        } else {
 
-        //     log::info!("Collect all click traces per client...");
-        //     let client_to_sample_idx_map: HashMap<u32, Vec<usize>> =
-        //         sample::get_train_data(&client_to_seq_map, &mut rng, 0);
+            log::info!("Collect all click traces per client...");
+            let client_to_sample_idx_map: HashMap<u32, Vec<usize>> =
+                sample::get_train_data(&client_to_seq_map, &mut rng, 0);
 
-        //     log::info!("Starting the evaluation...");
-        //     sequence::evaluation::eval(
-        //         &config,
-        //         &client_to_seq_map,
-        //         &client_to_target_idx_map,
-        //         &client_to_sample_idx_map,
-        //     );
-        // }
+            log::info!("Starting the evaluation...");
+            sequence::evaluation::eval(
+                &config,
+                &client_to_seq_map,
+                &client_to_target_idx_map,
+                &client_to_sample_idx_map,
+            );
+        }
         
     // Approach 2: Frequency-based
     } else {

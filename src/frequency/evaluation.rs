@@ -147,21 +147,25 @@ fn eval_step(
         );
 
         if config.typical {
-            // let vect_typ_click_trace = click_trace::gen_typical_vect_click_trace(
-            //     &sampled_click_traces,
-            //     &speed_set,
-            //     &heading_set,
-            //     &street_set,
-            //     &postcode_set,
-            //     &state_set,
-            // );
-            // let dist = compute_dist(
-            //     &config.fields,
-            //     &metric,
-            //     &vectorized_target,
-            //     &vect_typ_click_trace,
-            // );
-            // tuples.push((OrderedFloat(dist), client.clone()));
+            let vect_typ_click_trace = click_trace::gen_typical_vect_click_trace(
+                &sampled_click_traces,
+                &speed_set,
+                &heading_set,
+                &street_set,
+                &postcode_set,
+                &state_set,
+                &highway_set, 
+                &hamlet_set, 
+                &suburb_set,
+                &village_set
+            );
+            let dist = compute_dist(
+                &config.fields,
+                &metric,
+                &vectorized_target,
+                &vect_typ_click_trace,
+            );
+            tuples.push((OrderedFloat(dist), client.clone()));
         } else {
             for sample_click_trace in sampled_click_traces.into_iter() {
                 let vectorized_ref = click_trace::vectorize_click_trace(

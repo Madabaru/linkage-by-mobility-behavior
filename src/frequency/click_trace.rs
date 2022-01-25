@@ -36,66 +36,94 @@ pub struct VectFreqClickTrace<T> {
     pub day: Vec<T>,
 }
 
-// pub fn gen_typical_vect_click_trace(
-//     click_traces: &Vec<FreqClickTrace>,
-//     speed_set: &IndexSet<String>,
-//     heading_set: &IndexSet<String>,
-//     street_set: &IndexSet<String>,
-//     postcode_set: &IndexSet<String>,
-//     state_set: &IndexSet<String>,
-// ) -> VectFreqClickTrace<f64> {
-//     let mut speed_vec = maths::zeros_f64(speed_set.len());
-//     let mut heading_vec = maths::zeros_f64(heading_set.len());
-//     let mut street_vec = maths::zeros_f64(state_set.len());
-//     let mut postcode_vec = maths::zeros_f64(postcode_set.len());
-//     let mut state_vec = maths::zeros_f64(state_set.len());
-//     let mut hour_vec = maths::zeros_f64(24);
-//     let mut day_vec = maths::zeros_f64(7);
+pub fn gen_typical_vect_click_trace(
+    click_traces: &Vec<FreqClickTrace>,
+    speed_set: &IndexSet<String>,
+    heading_set: &IndexSet<String>,
+    street_set: &IndexSet<String>,
+    postcode_set: &IndexSet<String>,
+    state_set: &IndexSet<String>,
+    highway_set: &IndexSet<String>,
+    hamlet_set: &IndexSet<String>,
+    suburb_set: &IndexSet<String>,
+    village_set: &IndexSet<String>
+) -> VectFreqClickTrace<f64> {
+    let mut speed_vec = maths::zeros_f64(speed_set.len());
+    let mut heading_vec = maths::zeros_f64(heading_set.len());
+    let mut street_vec = maths::zeros_f64(state_set.len());
+    let mut postcode_vec = maths::zeros_f64(postcode_set.len());
+    let mut state_vec = maths::zeros_f64(state_set.len());
+    let mut highway_vec = maths::zeros_f64(highway_set.len());
+    let mut hamlet_vec = maths::zeros_f64(hamlet_set.len());
+    let mut suburb_vec = maths::zeros_f64(suburb_set.len());
+    let mut village_vec = maths::zeros_f64(village_set.len());
+    let mut hour_vec = maths::zeros_f64(24);
+    let mut day_vec = maths::zeros_f64(7);
 
-//     for click_trace in click_traces.into_iter() {
-//         let vect_click_trace = vectorize_click_trace(
-//             click_trace,
-//             speed_set,
-//             heading_set,
-//             street_set,
-//             postcode_set,
-//             state_set,
-//         );
-//         speed_vec = maths::add(speed_vec, &vect_click_trace.speed);
-//         heading_vec = maths::add(heading_vec, &vect_click_trace.heading);
-//         street_vec = maths::add(street_vec, &vect_click_trace.street);
-//         postcode_vec = maths::add(postcode_vec, &vect_click_trace.postcode);
-//         state_vec = maths::add(state_vec, &vect_click_trace.state);
-//         day_vec = maths::add(day_vec, &vect_click_trace.day);
-//         hour_vec = maths::add(hour_vec, &vect_click_trace.hour);
-//     }
+    for click_trace in click_traces.into_iter() {
+        let vect_click_trace = vectorize_click_trace(
+            click_trace,
+            speed_set,
+            heading_set,
+            street_set,
+            postcode_set,
+            state_set,
+            highway_set,
+            hamlet_set,
+            suburb_set,
+            village_set
+        );
+        speed_vec = maths::add(speed_vec, &vect_click_trace.speed);
+        heading_vec = maths::add(heading_vec, &vect_click_trace.heading);
+        street_vec = maths::add(street_vec, &vect_click_trace.street);
+        postcode_vec = maths::add(postcode_vec, &vect_click_trace.postcode);
+        state_vec = maths::add(state_vec, &vect_click_trace.state);
+        highway_vec = maths::add(highway_vec, &vect_click_trace.highway);
+        hamlet_vec = maths::add(hamlet_vec, &vect_click_trace.hamlet);
+        suburb_vec = maths::add(suburb_vec, &vect_click_trace.suburb);
+        village_vec = maths::add(village_vec, &vect_click_trace.village);
+        day_vec = maths::add(day_vec, &vect_click_trace.day);
+        hour_vec = maths::add(hour_vec, &vect_click_trace.hour);
+    }
 
-//     let speed_len = speed_vec.len() as f64;
-//     speed_vec.iter_mut().for_each(|a| *a /= speed_len);
-//     let heading_len = heading_vec.len() as f64;
-//     heading_vec.iter_mut().for_each(|a| *a /= heading_len);
-//     let street_len = street_vec.len() as f64;
-//     street_vec.iter_mut().for_each(|a| *a /= street_len);
-//     let postcode_len = postcode_vec.len() as f64;
-//     postcode_vec.iter_mut().for_each(|a| *a /= postcode_len);
-//     let state_len = state_vec.len() as f64;
-//     state_vec.iter_mut().for_each(|a| *a /= state_len);
-//     let hour_len = hour_vec.len() as f64;
-//     hour_vec.iter_mut().for_each(|a| *a /= hour_len);
-//     let day_len = day_vec.len() as f64;
-//     day_vec.iter_mut().for_each(|a| *a /= day_len);
+    let speed_len = speed_vec.len() as f64;
+    speed_vec.iter_mut().for_each(|a| *a /= speed_len);
+    let heading_len = heading_vec.len() as f64;
+    heading_vec.iter_mut().for_each(|a| *a /= heading_len);
+    let street_len = street_vec.len() as f64;
+    street_vec.iter_mut().for_each(|a| *a /= street_len);
+    let postcode_len = postcode_vec.len() as f64;
+    postcode_vec.iter_mut().for_each(|a| *a /= postcode_len);
+    let state_len = state_vec.len() as f64;
+    state_vec.iter_mut().for_each(|a| *a /= state_len);
+    let highway_len = highway_vec.len() as f64;
+    highway_vec.iter_mut().for_each(|a| *a /= highway_len);
+    let hamlet_len = hamlet_vec.len() as f64;
+    hamlet_vec.iter_mut().for_each(|a| *a /= hamlet_len);
+    let suburb_len = suburb_vec.len() as f64;
+    suburb_vec.iter_mut().for_each(|a| *a /= suburb_len);
+    let village_len = village_vec.len() as f64;
+    village_vec.iter_mut().for_each(|a| *a /= village_len);
+    let hour_len = hour_vec.len() as f64;
+    hour_vec.iter_mut().for_each(|a| *a /= hour_len);
+    let day_len = day_vec.len() as f64;
+    day_vec.iter_mut().for_each(|a| *a /= day_len);
 
-//     let typical_vect_click_trace = VectFreqClickTrace {
-//         speed: speed_vec,
-//         heading: heading_vec,
-//         street: street_vec,
-//         postcode: postcode_vec,
-//         state: state_vec,
-//         day: day_vec,
-//         hour: hour_vec,
-//     };
-//     typical_vect_click_trace
-// }
+    let typical_vect_click_trace = VectFreqClickTrace {
+        speed: speed_vec,
+        heading: heading_vec,
+        street: street_vec,
+        postcode: postcode_vec,
+        state: state_vec,
+        day: day_vec,
+        hour: hour_vec,
+        highway: highway_vec,
+        hamlet: hamlet_vec,
+        suburb: suburb_vec,
+        village: village_vec
+    };
+    typical_vect_click_trace
+}
 
 // Transform each histogram (as a hashmap) in a click trace into a vector to speed up further computations
 pub fn vectorize_click_trace(
