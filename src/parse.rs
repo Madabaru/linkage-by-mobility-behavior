@@ -111,10 +111,7 @@ pub fn parse_to_frequency(
                         > config.max_click_trace_duration
                 {
                     click_traces_list.pop();
-                } else if click_traces_list.last().unwrap().street.keys().len() <= 2 && (click_traces_list.last().unwrap().street.contains_key("A 5") || click_traces_list.last().unwrap().street.contains_key("A 67")) {
-                    println!("Hi");
-                    click_traces_list.pop();
-                }
+                } 
             }
 
             let click_trace = FreqClickTrace {
