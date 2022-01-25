@@ -111,6 +111,7 @@ fn eval_step(
         }
     }
     tuples.sort_unstable_by_key(|k| Reverse(k.0));
+    println!("{:?}", tuples);
     let cutoff: usize = (0.1 * client_to_seq_map.len() as f64) as usize;
     let is_top_10_percent = utils::is_target_in_top_k(client_target, &tuples[..cutoff]);
     let is_top_10: bool = utils::is_target_in_top_k(client_target, &tuples[..10]);
@@ -175,10 +176,34 @@ fn compute_alignment_scores(
                 target_click_trace.hour.clone(),
                 ref_click_trace.hour.clone(),
             ),
-            DataFields::Highway => todo!(),
-            DataFields::Hamlet => todo!(),
-            DataFields::Suburb => todo!(),
-            DataFields::Village => todo!(),
+            DataFields::Highway => compute_sequence_alignment(
+                strategy,
+                scope,
+                scoring_matrix,
+                target_click_trace.highway.clone(),
+                ref_click_trace.highway.clone(),
+            ),
+            DataFields::Hamlet => compute_sequence_alignment(
+                strategy,
+                scope,
+                scoring_matrix,
+                target_click_trace.hamlet.clone(),
+                ref_click_trace.hamlet.clone(),
+            ),
+            DataFields::Suburb => compute_sequence_alignment(
+                strategy,
+                scope,
+                scoring_matrix,
+                target_click_trace.suburb.clone(),
+                ref_click_trace.suburb.clone(),
+            ),
+            DataFields::Village => compute_sequence_alignment(
+                strategy,
+                scope,
+                scoring_matrix,
+                target_click_trace.village.clone(),
+                ref_click_trace.village.clone(),
+            ),
         };
 
         match field {
@@ -189,10 +214,10 @@ fn compute_alignment_scores(
             DataFields::State => unnormalized_align_scores.push(score),
             DataFields::Day => align_scores.push(score),
             DataFields::Hour => unnormalized_align_scores.push(score),
-            DataFields::Highway => todo!(),
-            DataFields::Hamlet => todo!(),
-            DataFields::Suburb => todo!(),
-            DataFields::Village => todo!(),
+            DataFields::Highway => unnormalized_align_scores.push(score),
+            DataFields::Hamlet => unnormalized_align_scores.push(score),
+            DataFields::Suburb => unnormalized_align_scores.push(score),
+            DataFields::Village => unnormalized_align_scores.push(score),
         }
     }
 

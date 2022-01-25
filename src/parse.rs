@@ -213,6 +213,10 @@ pub fn parse_to_sequence(
     let mut state_set: IndexSet<String> = IndexSet::new();
     let mut speed_set: IndexSet<String> = IndexSet::new();
     let mut heading_set: IndexSet<String> = IndexSet::new();
+    let mut highway_set: IndexSet<String> = IndexSet::new();
+    let mut hamlet_set: IndexSet<String> = IndexSet::new();
+    let mut suburb_set: IndexSet<String> = IndexSet::new();
+    let mut village_set: IndexSet<String> = IndexSet::new();
 
     for result in reader.deserialize() {
         let record: Record = result?;
@@ -251,6 +255,11 @@ pub fn parse_to_sequence(
                 heading: Vec::with_capacity(10),
                 postcode: Vec::with_capacity(10),
                 state: Vec::with_capacity(10),
+                highway: Vec::with_capacity(10),
+                hamlet: Vec::with_capacity(10),
+                suburb: Vec::with_capacity(10),
+                village: Vec::with_capacity(10)
+
             };
             click_traces_list.push(click_trace);
             click_trace_len = 0;
@@ -267,6 +276,10 @@ pub fn parse_to_sequence(
         state_set.insert(record.state.clone());
         heading_set.insert(record.heading.clone());
         speed_set.insert(record.speed.clone());
+        highway_set.insert(record.highway.clone());
+        hamlet_set.insert(record.hamlet.clone());
+        suburb_set.insert(record.suburb.clone());
+        village_set.insert(record.village.clone());
 
         current_click_trace.hour.push(datetime.hour());
         current_click_trace.day = datetime.weekday().num_days_from_monday();
@@ -287,6 +300,18 @@ pub fn parse_to_sequence(
         current_click_trace
             .speed
             .push(u32::try_from(speed_set.get_full(&record.speed).unwrap().0).unwrap());
+        current_click_trace
+            .highway
+            .push(u32::try_from(highway_set.get_full(&record.highway).unwrap().0).unwrap());
+        current_click_trace
+            .hamlet
+            .push(u32::try_from(hamlet_set.get_full(&record.hamlet).unwrap().0).unwrap());
+        current_click_trace
+            .suburb
+            .push(u32::try_from(suburb_set.get_full(&record.suburb).unwrap().0).unwrap());
+        current_click_trace
+            .village
+            .push(u32::try_from(village_set.get_full(&record.village).unwrap().0).unwrap());
 
         prev_time = record.timestamp;
         prev_client = record.client_id;

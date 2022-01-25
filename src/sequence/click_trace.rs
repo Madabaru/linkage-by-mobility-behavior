@@ -7,6 +7,10 @@ pub struct SeqClickTrace {
     pub street: Vec<u32>,
     pub postcode: Vec<u32>,
     pub state: Vec<u32>,
+    pub highway: Vec<u32>,
+    pub hamlet: Vec<u32>,
+    pub suburb: Vec<u32>,
+    pub village: Vec<u32>,
     pub hour: Vec<u32>,
     pub day: u32,
     pub start_time: f64,
@@ -58,7 +62,7 @@ pub fn gen_typical_click_trace(click_traces: &Vec<SeqClickTrace>) -> SeqClickTra
         *x = typical_street;
     }
 
-    // Get typical hour
+    // Get typical states
     let mut typical_states: Vec<u32> = vec![0; typical_length];
     for (i, x) in typical_states.iter_mut().enumerate() {
         let states: Vec<u32> = click_traces
@@ -94,11 +98,63 @@ pub fn gen_typical_click_trace(click_traces: &Vec<SeqClickTrace>) -> SeqClickTra
         *x = typical_hour;
     }
 
+    // Get typical highway
+    let mut typical_highways: Vec<u32> = vec![0; typical_length];
+    for (i, x) in typical_highways.iter_mut().enumerate() {
+        let highways: Vec<u32> = click_traces
+            .iter()
+            .filter(|cl| cl.highway.len() > i)
+            .map(|cl| cl.highway[i])
+            .collect();
+        let typical_highway = utils::get_most_freq_element(&highways);
+        *x = typical_highway;
+    }
+
+    // Get typical hamlet
+    let mut typical_hamlets: Vec<u32> = vec![0; typical_length];
+    for (i, x) in typical_hamlets.iter_mut().enumerate() {
+        let hamlets: Vec<u32> = click_traces
+            .iter()
+            .filter(|cl| cl.hamlet.len() > i)
+            .map(|cl| cl.hamlet[i])
+            .collect();
+        let typical_hamlet = utils::get_most_freq_element(&hamlets);
+        *x = typical_hamlet;
+    }
+
+    // Get typical suburb
+    let mut typical_suburbs: Vec<u32> = vec![0; typical_length];
+    for (i, x) in typical_suburbs.iter_mut().enumerate() {
+        let suburbs: Vec<u32> = click_traces
+            .iter()
+            .filter(|cl| cl.suburb.len() > i)
+            .map(|cl| cl.suburb[i])
+            .collect();
+        let typical_suburb = utils::get_most_freq_element(&suburbs);
+        *x = typical_suburb;
+    }
+
+    // Get typical village
+    let mut typical_villages: Vec<u32> = vec![0; typical_length];
+    for (i, x) in typical_villages.iter_mut().enumerate() {
+        let villages: Vec<u32> = click_traces
+            .iter()
+            .filter(|cl| cl.village.len() > i)
+            .map(|cl| cl.village[i])
+            .collect();
+        let typical_village = utils::get_most_freq_element(&villages);
+        *x = typical_village;
+    }
+
     // Create typical click trace from typical values
     let typical_click_trace = SeqClickTrace {
         street: typical_streets,
         postcode: typical_postcodes,
         state: typical_states,
+        highway: typical_highways,
+        hamlet: typical_hamlets,
+        suburb: typical_suburbs,
+        village: typical_villages,
         hour: typical_hours,
         day: typical_day,
         start_time: 0.0,

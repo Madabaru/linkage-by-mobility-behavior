@@ -189,7 +189,7 @@ fn eval_step(
     tuples.sort_unstable_by_key(|k| k.0);
     let cutoff: usize = (0.1 * client_to_freq_map.len() as f64) as usize;
     let is_top_10_percent = utils::is_target_in_top_k(client_target, &tuples[..cutoff]);
-    let is_top_10: bool = utils::is_target_in_top_k(client_target, &tuples[..10   ]);
+    let is_top_10: bool = utils::is_target_in_top_k(client_target, &tuples[..10]);
     (
         client_target.clone(),
         tuples[0].1,
