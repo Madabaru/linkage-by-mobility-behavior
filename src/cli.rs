@@ -25,7 +25,7 @@ pub struct Config {
 
 
 pub fn get_cli_config() -> Result<Config, clap::Error> {
-    let matches = clap::App::new("Tracking-Users-by-Browsing-Behavior")
+    let matches = clap::App::new("Linking-by-Mobility-Behavior")
         .version("1.0")
         .author("Felix John")
         .arg(
@@ -116,7 +116,7 @@ pub fn get_cli_config() -> Result<Config, clap::Error> {
         .arg(
             clap::Arg::new("path")
                 .long("path")
-                .default_value("data/test.csv")
+                .default_value("")
                 .help("Path to the dataset.")
         )
         .arg(
