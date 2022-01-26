@@ -91,7 +91,7 @@ pub fn get_cli_config() -> Result<Config, clap::Error> {
         .arg(
             clap::Arg::new("min_num_click_traces")
                 .long("min_num_click_traces")
-                .default_value("2")
+                .default_value("4")
                 .help("Minimum number of click traces per client."),
         )
         .arg(
@@ -109,14 +109,14 @@ pub fn get_cli_config() -> Result<Config, clap::Error> {
         .arg(
             clap::Arg::new("metric")
                 .long("metric")
-                .default_value("euclidean")
+                .default_value("kullbrack_leibler")
                 .help("Distance metric to compare a pair of click traces.")
                 .possible_values(&["euclidean", "manhattan", "cosine", "non_intersection", "bhattacharyya", "kullbrack_leibler", "total_variation", "jeffries_matusita", "chi_quared"]),
         )
         .arg(
             clap::Arg::new("path")
                 .long("path")
-                .default_value("")
+                .default_value("/home/john/mobility/driving_sampled_8k.csv")
                 .help("Path to the dataset.")
         )
         .arg(
