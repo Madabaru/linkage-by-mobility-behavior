@@ -111,7 +111,7 @@ pub fn get_cli_config() -> Result<Config, clap::Error> {
                 .long("metric")
                 .default_value("euclidean")
                 .help("Distance metric to compare a pair of click traces.")
-                .possible_values(&["euclidean", "manhatten", "cosine", "jaccard", "bhattacharyya", "kullbrack_leibler", "total_variation", "jeffries_matusita", "chi_quared"]),
+                .possible_values(&["euclidean", "manhattan", "cosine", "non_intersection", "bhattacharyya", "kullbrack_leibler", "total_variation", "jeffries_matusita", "chi_quared"]),
         )
         .arg(
             clap::Arg::new("path")
