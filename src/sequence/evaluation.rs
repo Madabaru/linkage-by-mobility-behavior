@@ -107,7 +107,6 @@ fn eval_step(
         }
     }
     tuples.sort_unstable_by_key(|k| Reverse(k.0));
-    println!("{:?}", tuples);
     let cutoff: usize = (0.1 * client_to_seq_map.len() as f64) as usize;
     let is_top_10_percent = utils::is_target_in_top_k(client_target, &tuples[..cutoff]);
     let is_top_10: bool = utils::is_target_in_top_k(client_target, &tuples[..10]);
