@@ -116,7 +116,7 @@ pub fn get_cli_config() -> Result<Config, clap::Error> {
         .arg(
             clap::Arg::new("path")
                 .long("path")
-                .default_value("/home/john/mobility/driving_sampled_8k.csv")
+                .default_value("/home/john/data/mobility/driving_sampled_8k.csv")
                 .help("Path to the dataset.")
         )
         .arg(
