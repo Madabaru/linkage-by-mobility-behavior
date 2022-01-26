@@ -23,7 +23,7 @@ pub fn eval(
     client_to_target_idx_map: &HashMap<u32, usize>,
     client_to_sample_idx_map: &HashMap<u32, Vec<usize>>,
 ) {
-    let result_list: Vec<(u32, u32, bool, bool)> = client_to_target_idx_map
+    let result_list: Vec<(bool, bool, bool)> = client_to_target_idx_map
         .par_iter()
         .map(|(client, target_idx)| {
             eval_step(
@@ -36,12 +36,12 @@ pub fn eval(
         })
         .collect();
 
-    let mut correct_pred = 0;
+    let mut top_1_count = 0;
     let mut top_10_count = 0;
     let mut top_10_percent_count = 0;
-    for (pred, target, in_top_10, in_top_10_percent) in result_list.iter() {
-        if pred == target {
-            correct_pred += 1
+    for (in_top_1, in_top_10, in_top_10_percent) in result_list.iter() {
+        if *in_top_1 {
+            top_1_count += 1
         }
         if *in_top_10 {
             top_10_count += 1;
@@ -51,17 +51,15 @@ pub fn eval(
         }
     }
 
-    let accuracy: f64 = correct_pred as f64 / result_list.len() as f64;
-    log::info!("Rank 1: {:?}", accuracy);
+    let top_1: f64 = top_1_count as f64 / result_list.len() as f64;
+    log::info!("Top 1: {:?}", top_1);
     let top_10: f64 = top_10_count as f64 / result_list.len() as f64;
     log::info!("Top 10: {:?}", top_10);
     let top_10_percent: f64 = top_10_percent_count as f64 / result_list.len() as f64;
     log::info!("Top 10 Percent: {:?}", top_10_percent);
 
-    // Write result to output file for further processing in python
-    utils::write_to_output(result_list);
     // Write metrics to final evaluation file
-    utils::write_to_eval(config, top_10, top_10_percent);
+    utils::write_to_file(config, top_1, top_10, top_10_percent);
 }
 
 fn eval_step(
@@ -70,7 +68,7 @@ fn eval_step(
     target_idx: &usize,
     client_to_freq_map: &BTreeMap<u32, Vec<FreqClickTrace>>,
     client_to_sample_idx_map: &HashMap<u32, Vec<usize>>,
-) -> (u32, u32, bool, bool) {
+) -> (bool, bool, bool) {
     let metric = DistanceMetric::from_str(&config.metric).unwrap();
     let target_click_trace = client_to_freq_map
         .get(client_target)
@@ -132,6 +130,11 @@ fn eval_step(
             &sampled_click_traces,
             &DataFields::Village,
         );
+        let location_code_set = get_unique_set(
+            target_click_trace,
+            &sampled_click_traces,
+            &DataFields::LocationCode,
+        );
 
         let vectorized_target = click_trace::vectorize_click_trace(
             target_click_trace,
@@ -143,7 +146,8 @@ fn eval_step(
             &highway_set, 
             &hamlet_set, 
             &suburb_set,
-            &village_set
+            &village_set,
+            &location_code_set,        
         );
 
         if config.typical {
@@ -157,7 +161,8 @@ fn eval_step(
                 &highway_set, 
                 &hamlet_set, 
                 &suburb_set,
-                &village_set
+                &village_set,
+                &location_code_set,
             );
             let dist = compute_dist(
                 &config.fields,
@@ -178,7 +183,8 @@ fn eval_step(
                     &highway_set, 
                     &hamlet_set, 
                     &suburb_set,
-                    &village_set
+                    &village_set,
+                    &location_code_set,
                 );
                 let dist =
                     compute_dist(&config.fields, &metric, &vectorized_target, &vectorized_ref);
@@ -190,9 +196,9 @@ fn eval_step(
     let cutoff: usize = (0.1 * client_to_freq_map.len() as f64) as usize;
     let is_top_10_percent = utils::is_target_in_top_k(client_target, &tuples[..cutoff]);
     let is_top_10: bool = utils::is_target_in_top_k(client_target, &tuples[..10]);
+    let is_top_1 = client_target.clone() == tuples[0].1;
     (
-        client_target.clone(),
-        tuples[0].1,
+        is_top_1,
         is_top_10,
         is_top_10_percent,
     )
@@ -258,13 +264,17 @@ where
                 ref_click_trace.suburb.clone(),
             ),
             DataFields::Village => (
-                target_click_trace.state.clone(),
-                ref_click_trace.state.clone(),
+                target_click_trace.village.clone(),
+                ref_click_trace.village.clone(),
             ),
             DataFields::Day => (target_click_trace.day.clone(), ref_click_trace.day.clone()),
             DataFields::Hour => (
                 target_click_trace.hour.clone(),
                 ref_click_trace.hour.clone(),
+            ),
+            DataFields::LocationCode =>      (           
+                target_click_trace.location_code.clone(),
+                ref_click_trace.location_code.clone(),
             ),
         };
 
@@ -302,6 +312,7 @@ pub fn get_unique_set(
         DataFields::Hamlet => target_click_trace.hamlet.keys().cloned().collect(),
         DataFields::Suburb => target_click_trace.suburb.keys().cloned().collect(),
         DataFields::Village => target_click_trace.village.keys().cloned().collect(),
+        DataFields::LocationCode => target_click_trace.location_code.keys().cloned().collect(),
         _ => panic!("Error: unknown data field supplied: {}", field),
     };
 
@@ -316,6 +327,7 @@ pub fn get_unique_set(
             DataFields::Hamlet => vector.extend(click_trace.hamlet.keys().cloned()),
             DataFields::Suburb => vector.extend(click_trace.suburb.keys().cloned()),
             DataFields::Village => vector.extend(click_trace.village.keys().cloned()),
+            DataFields::LocationCode => vector.extend(click_trace.location_code.keys().cloned()),
             _ => panic!("Error: unknown data field supplied: {}", field),
         }
     }

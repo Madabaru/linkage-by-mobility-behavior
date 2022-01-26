@@ -64,7 +64,7 @@ pub fn get_cli_config() -> Result<Config, clap::Error> {
         .arg(
             clap::Arg::new("fields")
                 .long("fields")
-                .possible_values(&["speed", "heading", "street", "postcode", "state", "hour", "day", "highway", "hamlet", "suburb", "village"])
+                .possible_values(&["speed", "heading", "street", "postcode", "state", "hour", "day", "highway", "hamlet", "suburb", "village", "location_code"])
                 .help("Data fields to consider for the analysis.")
                 .multiple_values(true)
                 .default_values(&["speed", "street", "postcode", "suburb", "village", "hamlet", "highway"])
@@ -102,7 +102,7 @@ pub fn get_cli_config() -> Result<Config, clap::Error> {
         .arg(
             clap::Arg::new("click_trace_sample_size")
                 .long("click_trace_sample_size")
-                .default_value("100")
+                .default_value("20")
                 .help("Number of click traces to sample per client"),
         )
         .arg(
@@ -115,7 +115,7 @@ pub fn get_cli_config() -> Result<Config, clap::Error> {
         .arg(
             clap::Arg::new("path")
                 .long("path")
-                .default_value("data/driving_full_filtered.csv")
+                .default_value("data/test.csv")
                 .help("Path to the dataset.")
         )
         .arg(

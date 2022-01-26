@@ -19,6 +19,7 @@ pub struct FreqClickTrace {
     pub hour: Vec<u32>,
     pub start_time: f64,
     pub end_time: f64,
+    pub location_code: HashMap<String, u32>,
 }
 
 #[derive(Debug, Clone)]
@@ -34,6 +35,7 @@ pub struct VectFreqClickTrace<T> {
     pub village: Vec<T>,
     pub hour: Vec<T>,
     pub day: Vec<T>,
+    pub location_code: Vec<T>,
 }
 
 pub fn gen_typical_vect_click_trace(
@@ -46,17 +48,19 @@ pub fn gen_typical_vect_click_trace(
     highway_set: &IndexSet<String>,
     hamlet_set: &IndexSet<String>,
     suburb_set: &IndexSet<String>,
-    village_set: &IndexSet<String>
+    village_set: &IndexSet<String>,
+    location_code_set: &IndexSet<String>,
 ) -> VectFreqClickTrace<f64> {
     let mut speed_vec = maths::zeros_f64(speed_set.len());
     let mut heading_vec = maths::zeros_f64(heading_set.len());
-    let mut street_vec = maths::zeros_f64(state_set.len());
+    let mut street_vec = maths::zeros_f64(street_set.len());
     let mut postcode_vec = maths::zeros_f64(postcode_set.len());
     let mut state_vec = maths::zeros_f64(state_set.len());
     let mut highway_vec = maths::zeros_f64(highway_set.len());
     let mut hamlet_vec = maths::zeros_f64(hamlet_set.len());
     let mut suburb_vec = maths::zeros_f64(suburb_set.len());
     let mut village_vec = maths::zeros_f64(village_set.len());
+    let mut location_code_vec = maths::zeros_f64(location_code_set.len());
     let mut hour_vec = maths::zeros_f64(24);
     let mut day_vec = maths::zeros_f64(7);
 
@@ -71,7 +75,8 @@ pub fn gen_typical_vect_click_trace(
             highway_set,
             hamlet_set,
             suburb_set,
-            village_set
+            village_set,
+            location_code_set,
         );
         speed_vec = maths::add(speed_vec, &vect_click_trace.speed);
         heading_vec = maths::add(heading_vec, &vect_click_trace.heading);
@@ -82,6 +87,7 @@ pub fn gen_typical_vect_click_trace(
         hamlet_vec = maths::add(hamlet_vec, &vect_click_trace.hamlet);
         suburb_vec = maths::add(suburb_vec, &vect_click_trace.suburb);
         village_vec = maths::add(village_vec, &vect_click_trace.village);
+        location_code_vec = maths::add(location_code_vec, &vect_click_trace.location_code);
         day_vec = maths::add(day_vec, &vect_click_trace.day);
         hour_vec = maths::add(hour_vec, &vect_click_trace.hour);
     }
@@ -104,6 +110,10 @@ pub fn gen_typical_vect_click_trace(
     suburb_vec.iter_mut().for_each(|a| *a /= suburb_len);
     let village_len = village_vec.len() as f64;
     village_vec.iter_mut().for_each(|a| *a /= village_len);
+    let location_code_len = location_code_vec.len() as f64;
+    location_code_vec
+        .iter_mut()
+        .for_each(|a| *a /= location_code_len);
     let hour_len = hour_vec.len() as f64;
     hour_vec.iter_mut().for_each(|a| *a /= hour_len);
     let day_len = day_vec.len() as f64;
@@ -120,7 +130,8 @@ pub fn gen_typical_vect_click_trace(
         highway: highway_vec,
         hamlet: hamlet_vec,
         suburb: suburb_vec,
-        village: village_vec
+        village: village_vec,
+        location_code: location_code_vec,
     };
     typical_vect_click_trace
 }
@@ -137,6 +148,7 @@ pub fn vectorize_click_trace(
     hamlet_set: &IndexSet<String>,
     suburb_set: &IndexSet<String>,
     village_set: &IndexSet<String>,
+    location_code_set: &IndexSet<String>,
 ) -> VectFreqClickTrace<u32> {
     let vectorized_click_trace = VectFreqClickTrace {
         speed: utils::gen_vector_from_freq_map(&click_trace.speed, speed_set),
@@ -148,6 +160,10 @@ pub fn vectorize_click_trace(
         hamlet: utils::gen_vector_from_freq_map(&click_trace.hamlet, hamlet_set),
         suburb: utils::gen_vector_from_freq_map(&click_trace.suburb, suburb_set),
         village: utils::gen_vector_from_freq_map(&click_trace.village, village_set),
+        location_code: utils::gen_vector_from_freq_map(
+            &click_trace.location_code,
+            location_code_set,
+        ),
         day: click_trace.hour.clone(),
         hour: click_trace.day.clone(),
     };

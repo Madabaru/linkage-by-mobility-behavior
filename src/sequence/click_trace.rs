@@ -15,6 +15,7 @@ pub struct SeqClickTrace {
     pub day: u32,
     pub start_time: f64,
     pub end_time: f64,
+    pub location_code: Vec<u32>,
 }
 
 pub fn gen_typical_click_trace(click_traces: &Vec<SeqClickTrace>) -> SeqClickTrace {
@@ -62,7 +63,7 @@ pub fn gen_typical_click_trace(click_traces: &Vec<SeqClickTrace>) -> SeqClickTra
         *x = typical_street;
     }
 
-    // Get typical states
+    // Get typical state
     let mut typical_states: Vec<u32> = vec![0; typical_length];
     for (i, x) in typical_states.iter_mut().enumerate() {
         let states: Vec<u32> = click_traces
@@ -146,6 +147,18 @@ pub fn gen_typical_click_trace(click_traces: &Vec<SeqClickTrace>) -> SeqClickTra
         *x = typical_village;
     }
 
+    // Get typical location code
+    let mut typical_location_codes: Vec<u32> = vec![0; typical_length];
+    for (i, x) in typical_location_codes.iter_mut().enumerate() {
+        let location_codes: Vec<u32> = click_traces
+            .iter()
+            .filter(|cl| cl.location_code.len() > i)
+            .map(|cl| cl.location_code[i])
+            .collect();
+        let typical_location_code = utils::get_most_freq_element(&location_codes);
+        *x = typical_location_code;
+    }
+
     // Create typical click trace from typical values
     let typical_click_trace = SeqClickTrace {
         street: typical_streets,
@@ -161,18 +174,17 @@ pub fn gen_typical_click_trace(click_traces: &Vec<SeqClickTrace>) -> SeqClickTra
         end_time: 0.0,
         speed: typical_speeds,
         heading: typical_headings,
+        location_code: typical_location_codes,
     };
     typical_click_trace
 }
 
-pub fn reverse_click_trace(click_trace: &SeqClickTrace) -> SeqClickTrace {
-    let mut reverse_click_trace = click_trace.clone();
-    reverse_click_trace.speed.reverse();
-    reverse_click_trace.heading.reverse();
-    reverse_click_trace.street.reverse();
-    reverse_click_trace.postcode.reverse();
-    reverse_click_trace.state.reverse();
-    reverse_click_trace
-}
-
-
+// pub fn reverse_click_trace(click_trace: &SeqClickTrace) -> SeqClickTrace {
+//     let mut reverse_click_trace = click_trace.clone();
+//     reverse_click_trace.speed.reverse();
+//     reverse_click_trace.heading.reverse();
+//     reverse_click_trace.street.reverse();
+//     reverse_click_trace.postcode.reverse();
+//     reverse_click_trace.state.reverse();
+//     reverse_click_trace
+// }

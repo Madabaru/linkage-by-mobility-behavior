@@ -30,7 +30,8 @@ pub struct Record {
     pub highway: String,
     pub hamlet: String, 
     pub suburb: String, 
-    pub village: String
+    pub village: String,
+    pub location_code: String,
 }
 
 #[derive(PartialEq, Debug)]
@@ -45,8 +46,8 @@ pub enum DataFields {
     Highway,
     Hamlet, 
     Suburb, 
-    Village
-
+    Village,
+    LocationCode
 }
 
 impl Display for DataFields {
@@ -70,6 +71,7 @@ impl FromStr for DataFields {
             "hamlet" => Ok(Self::Hamlet),
             "suburb" => Ok(Self::Suburb),
             "village" => Ok(Self::Village),
+            "location_code" => Ok(Self::LocationCode),
             x => panic!("Error: Wrong data field supplied: {:?}", x),
         }
     }
@@ -124,6 +126,7 @@ pub fn parse_to_frequency(
                 suburb: HashMap::new(),
                 village: HashMap::new(),
                 state: HashMap::new(),
+                location_code: HashMap::new(),
                 hour: maths::zeros_u32(24),
                 day: maths::zeros_u32(7),
                 start_time: record.timestamp,
@@ -160,8 +163,8 @@ pub fn parse_to_frequency(
             .entry(record.heading.clone())
             .or_insert(0) += 1;
         *current_click_trace
-            .postcode
-            .entry(record.postcode.clone())
+            .street
+            .entry(record.street.clone())
             .or_insert(0) += 1;
         *current_click_trace
             .state
@@ -169,19 +172,23 @@ pub fn parse_to_frequency(
             .or_insert(0) += 1;
         *current_click_trace
             .highway
-            .entry(record.state.clone())
+            .entry(record.highway.clone())
             .or_insert(0) += 1;
         *current_click_trace
             .hamlet
-            .entry(record.state.clone())
+            .entry(record.hamlet.clone())
             .or_insert(0) += 1;
         *current_click_trace
             .suburb
-            .entry(record.state.clone())
+            .entry(record.suburb.clone())
             .or_insert(0) += 1;
         *current_click_trace
             .village
-            .entry(record.state.clone())
+            .entry(record.village.clone())
+            .or_insert(0) += 1;
+        *current_click_trace
+            .location_code
+            .entry(record.location_code.clone())
             .or_insert(0) += 1;
 
 
@@ -217,6 +224,7 @@ pub fn parse_to_sequence(
     let mut hamlet_set: IndexSet<String> = IndexSet::new();
     let mut suburb_set: IndexSet<String> = IndexSet::new();
     let mut village_set: IndexSet<String> = IndexSet::new();
+    let mut location_code_set: IndexSet<String> = IndexSet::new();
 
     for result in reader.deserialize() {
         let record: Record = result?;
@@ -258,7 +266,8 @@ pub fn parse_to_sequence(
                 highway: Vec::with_capacity(10),
                 hamlet: Vec::with_capacity(10),
                 suburb: Vec::with_capacity(10),
-                village: Vec::with_capacity(10)
+                village: Vec::with_capacity(10),
+                location_code: Vec::with_capacity(10)
 
             };
             click_traces_list.push(click_trace);
@@ -280,6 +289,7 @@ pub fn parse_to_sequence(
         hamlet_set.insert(record.hamlet.clone());
         suburb_set.insert(record.suburb.clone());
         village_set.insert(record.village.clone());
+        location_code_set.insert(record.location_code.clone());
 
         current_click_trace.hour.push(datetime.hour());
         current_click_trace.day = datetime.weekday().num_days_from_monday();
@@ -312,6 +322,9 @@ pub fn parse_to_sequence(
         current_click_trace
             .village
             .push(u32::try_from(village_set.get_full(&record.village).unwrap().0).unwrap());
+        current_click_trace
+            .location_code
+            .push(u32::try_from(location_code_set.get_full(&record.location_code).unwrap().0).unwrap());
 
         prev_time = record.timestamp;
         prev_client = record.client_id;
