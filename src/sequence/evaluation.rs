@@ -1,5 +1,5 @@
 use crate::parse::DataFields;
-use crate::sequence::click_trace::SeqClickTrace;
+use crate::sequence::click_trace::{SeqClickTrace, reverse_click_trace};
 use crate::utils;
 use crate::{cli, sequence};
 
@@ -53,7 +53,7 @@ pub fn eval(
     log::info!("Top 10 Percent: {:?}", top_10_percent);
 
     // Write metrics to final evaluation file
-    utils::write_to_file(config, top_1, top_10, top_10_percent);
+    utils::write_to_file(config, top_1, top_10, top_10_percent).expect("Failed to write to evaluation file.");
 }
 
 fn eval_step(
@@ -69,6 +69,8 @@ fn eval_step(
         .get(*target_idx)
         .unwrap();
 
+    let reverse_target_click_trace = reverse_click_trace(target_click_trace);
+
     let mut tuples: Vec<(OrderedFloat<f64>, u32)> = Vec::with_capacity(client_to_seq_map.len());
 
     for (client, click_traces) in client_to_seq_map.into_iter() {
@@ -83,7 +85,7 @@ fn eval_step(
             let typical_click_trace =
                 sequence::click_trace::gen_typical_click_trace(&sampled_click_traces);
 
-            let score = compute_alignment_scores(
+            let mut score = compute_alignment_scores(
                 &config.fields,
                 &config.strategy,
                 &config.scope,
@@ -91,10 +93,25 @@ fn eval_step(
                 &target_click_trace,
                 &typical_click_trace,
             );
+
+            if config.reverse {
+                let score_reverse = compute_alignment_scores(
+                    &config.fields,
+                    &config.strategy,
+                    &config.scope,
+                    &config.scoring_matrix,
+                    &reverse_target_click_trace,
+                    &typical_click_trace,
+                );
+                if score < score_reverse {
+                    score = score_reverse;
+                }
+            }
             tuples.push((OrderedFloat(score), client.clone()));
+
         } else {
             for sample_click_trace in sampled_click_traces.into_iter() {
-                let score = compute_alignment_scores(
+                let mut score = compute_alignment_scores(
                     &config.fields,
                     &config.strategy,
                     &config.scope,
@@ -102,12 +119,25 @@ fn eval_step(
                     &target_click_trace,
                     &sample_click_trace,
                 );
+
+                if config.reverse {
+                    let score_reverse = compute_alignment_scores(
+                        &config.fields,
+                        &config.strategy,
+                        &config.scope,
+                        &config.scoring_matrix,
+                        &reverse_target_click_trace,
+                        &sample_click_trace,
+                    );
+                    if score < score_reverse {
+                        score = score_reverse;
+                    }
+                }
                 tuples.push((OrderedFloat(score), client.clone()));
             }
         }
     }
     tuples.sort_unstable_by_key(|k| Reverse(k.0));
-    println!("{:?}", tuples);
     let cutoff: usize = (0.1 * client_to_seq_map.len() as f64) as usize;
     let is_top_10_percent = utils::is_target_in_top_k(client_target, &tuples[..cutoff]);
     let is_top_10: bool = utils::is_target_in_top_k(client_target, &tuples[..10]);

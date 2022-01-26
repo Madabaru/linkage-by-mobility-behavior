@@ -28,11 +28,11 @@ pub fn gen_vector_from_freq_map(
     vector
 }
 
-pub fn gen_vector_from_str(s: &str, set: &IndexSet<String>) -> Vec<u32> {
-    let mut vector: Vec<u32> = vec![0; set.len()];
-    vector[set.get_full(s).unwrap().0] = 1;
-    vector
-}
+// pub fn gen_vector_from_str(s: &str, set: &IndexSet<String>) -> Vec<u32> {
+//     let mut vector: Vec<u32> = vec![0; set.len()];
+//     vector[set.get_full(s).unwrap().0] = 1;
+//     vector
+// }
 
 pub fn is_target_in_top_k(client_target: &u32, tuples: &[(OrderedFloat<f64>, u32)]) -> bool {
     tuples.iter().any(|(_, b)| b == client_target)
@@ -79,8 +79,8 @@ pub fn write_to_file(
     top_1: f64,
     top_10: f64,
     top_10_percent: f64,
-) -> Result<(), Box<Error>> {
-    let mut file = std::fs::OpenOptions::new()
+) -> Result<(), Box<dyn Error>> {
+    let file = std::fs::OpenOptions::new()
         .write(true)
         .create(true)
         .append(true)

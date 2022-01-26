@@ -20,6 +20,7 @@ pub struct Config {
     pub scoring_matrix: Vec<isize>,
     pub approach: String,
     pub scope: String,
+    pub reverse: bool,
 }
 
 
@@ -130,6 +131,12 @@ pub fn get_cli_config() -> Result<Config, clap::Error> {
                 .default_value("false")
                 .help("Set to true if you want to compute a typical click trace (session) per client.")
         )
+        .arg(
+            clap::Arg::new("reverse")
+                .long("reverse")
+                .default_value("false")
+                .help("Set to true if you want to reverse the sequence for pairwise comparison.")
+        )
         .get_matches();
 
     let config = Config {
@@ -189,6 +196,11 @@ pub fn get_cli_config() -> Result<Config, clap::Error> {
             .unwrap(),
         typical: matches
             .value_of("typical")
+            .unwrap_or_default()
+            .parse::<bool>()
+            .unwrap(),
+        reverse: matches
+            .value_of("reverse")
             .unwrap_or_default()
             .parse::<bool>()
             .unwrap(),
