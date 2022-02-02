@@ -239,6 +239,12 @@ pub fn parse_to_sequence(
         let record: Record = result?;
 
         if prev_client != record.client_id && !prev_client.is_empty() {
+            let prev_click_traces_list = client_to_seq_map.get_mut(&client_id).unwrap();
+            if !prev_click_traces_list.is_empty() {
+                if click_trace_len < config.min_click_trace_len {
+                    prev_click_traces_list.pop();
+                }
+            }
             client_id += 1;
         }
 
@@ -344,5 +350,8 @@ pub fn parse_to_sequence(
     log::info!("Number of clients before filtering: {:?}", client_to_seq_map.keys().len());
     client_to_seq_map.retain(|_, value| value.len() >= config.min_num_click_traces);
     log::info!("Number of clients after filtering: {:?}", client_to_seq_map.keys().len());
+
+    let total_num_mobility_traces: usize = client_to_seq_map.iter().map(|(_, val)| val.len()).sum();
+    log::info!("Total number of mobility traces: {:?}", total_num_mobility_traces);
     Ok(client_to_seq_map)
 }
