@@ -1,22 +1,19 @@
 use crate::cli::Config;
-use crate::frequency::{
-    click_trace::FreqClickTrace, 
-    maths
-};
+use crate::frequency::{click_trace::FreqClickTrace, maths};
 use crate::sequence::click_trace::SeqClickTrace;
 
+use chrono::{prelude::DateTime, Datelike, Timelike, Utc};
+use indexmap::IndexSet;
+use serde::Deserialize;
 use std::{
     collections::{BTreeMap, HashMap},
     convert::TryFrom,
     error::Error,
+    fmt::Display,
     str::FromStr,
     string::ParseError,
     time::{Duration, UNIX_EPOCH},
-    fmt::Display,
 };
-use chrono::{prelude::DateTime, Datelike, Timelike, Utc};
-use indexmap::IndexSet;
-use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
 pub struct Record {
@@ -28,8 +25,8 @@ pub struct Record {
     pub postcode: String,
     pub state: String,
     pub highway: String,
-    pub hamlet: String, 
-    pub suburb: String, 
+    pub hamlet: String,
+    pub suburb: String,
     pub village: String,
     pub location_code: String,
 }
@@ -44,10 +41,10 @@ pub enum DataFields {
     Postcode,
     State,
     Highway,
-    Hamlet, 
-    Suburb, 
+    Hamlet,
+    Suburb,
     Village,
-    LocationCode
+    LocationCode,
 }
 
 impl Display for DataFields {
@@ -80,7 +77,6 @@ impl FromStr for DataFields {
 pub fn parse_to_frequency(
     config: &Config,
 ) -> Result<BTreeMap<u32, Vec<FreqClickTrace>>, Box<dyn Error>> {
-    
     let mut prev_time: f64 = 0.0;
     let mut prev_client = String::new();
     let mut click_trace_len: usize = 0;
@@ -120,7 +116,7 @@ pub fn parse_to_frequency(
                         > config.max_click_trace_duration
                 {
                     click_traces_list.pop();
-                } 
+                }
             }
 
             let click_trace = FreqClickTrace {
@@ -204,12 +200,22 @@ pub fn parse_to_frequency(
     }
 
     // Remove any client with less than the minimum number of click traces
-    log::info!("Numer of clients before filtering: {:?}", client_to_freq_map.keys().len());
+    log::info!(
+        "Numer of clients before filtering: {:?}",
+        client_to_freq_map.keys().len()
+    );
     client_to_freq_map.retain(|_, value| value.len() >= config.min_num_click_traces);
-    log::info!("Number of clients after filtering: {:?}", client_to_freq_map.keys().len());
-    
-    let total_num_mobility_traces: usize = client_to_freq_map.iter().map(|(_, val)| val.len()).sum();
-    log::info!("Total number of mobility traces: {:?}", total_num_mobility_traces);
+    log::info!(
+        "Number of clients after filtering: {:?}",
+        client_to_freq_map.keys().len()
+    );
+
+    let total_num_mobility_traces: usize =
+        client_to_freq_map.iter().map(|(_, val)| val.len()).sum();
+    log::info!(
+        "Total number of mobility traces: {:?}",
+        total_num_mobility_traces
+    );
     Ok(client_to_freq_map)
 }
 
@@ -282,8 +288,7 @@ pub fn parse_to_sequence(
                 hamlet: Vec::with_capacity(10),
                 suburb: Vec::with_capacity(10),
                 village: Vec::with_capacity(10),
-                location_code: Vec::with_capacity(10)
-
+                location_code: Vec::with_capacity(10),
             };
             click_traces_list.push(click_trace);
             click_trace_len = 0;
@@ -337,9 +342,9 @@ pub fn parse_to_sequence(
         current_click_trace
             .village
             .push(u32::try_from(village_set.get_full(&record.village).unwrap().0).unwrap());
-        current_click_trace
-            .location_code
-            .push(u32::try_from(location_code_set.get_full(&record.location_code).unwrap().0).unwrap());
+        current_click_trace.location_code.push(
+            u32::try_from(location_code_set.get_full(&record.location_code).unwrap().0).unwrap(),
+        );
 
         prev_time = record.timestamp;
         prev_client = record.client_id;
@@ -347,11 +352,20 @@ pub fn parse_to_sequence(
     }
 
     // Remove any client with less than the minimum number of click traces
-    log::info!("Number of clients before filtering: {:?}", client_to_seq_map.keys().len());
+    log::info!(
+        "Number of clients before filtering: {:?}",
+        client_to_seq_map.keys().len()
+    );
     client_to_seq_map.retain(|_, value| value.len() >= config.min_num_click_traces);
-    log::info!("Number of clients after filtering: {:?}", client_to_seq_map.keys().len());
+    log::info!(
+        "Number of clients after filtering: {:?}",
+        client_to_seq_map.keys().len()
+    );
 
     let total_num_mobility_traces: usize = client_to_seq_map.iter().map(|(_, val)| val.len()).sum();
-    log::info!("Total number of mobility traces: {:?}", total_num_mobility_traces);
+    log::info!(
+        "Total number of mobility traces: {:?}",
+        total_num_mobility_traces
+    );
     Ok(client_to_seq_map)
 }
