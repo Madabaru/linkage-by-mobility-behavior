@@ -28,16 +28,16 @@ pub fn gen_vector_from_freq_map(
     vector
 }
 
-// pub fn gen_vector_from_str(s: &str, set: &IndexSet<String>) -> Vec<u32> {
-//     let mut vector: Vec<u32> = vec![0; set.len()];
-//     vector[set.get_full(s).unwrap().0] = 1;
-//     vector
-// }
+
 
 pub fn is_target_in_top_k(client_target: &u32, tuples: &[(OrderedFloat<f64>, u32)]) -> bool {
     tuples.iter().any(|(_, b)| b == client_target)
 }
 
+// Returns the most frequent element in a given vector of values.
+//
+// Returns the most frequent element in a given vector of values. 
+// The values can be of arbitrary value.
 pub fn get_most_freq_element<T>(vector: &[T]) -> T
 where
     T: std::cmp::Eq + std::hash::Hash + Copy,
@@ -47,9 +47,29 @@ where
         *map.entry(e).or_insert(0) += 1;
     }
     let option = map.into_iter().max_by_key(|(_, v)| *v).map(|(k, _)| k);
-    let most_repeated_ele = *option.unwrap();
-    most_repeated_ele
+    let most_frequent_ele = *option.unwrap();
+    most_frequent_ele
 }
+
+// Calculates the mean for a vector of values.
+pub fn mean(data: &[f64]) -> f64 {
+    let sum = data.iter().sum::<f64>();
+    let count = data.len();
+    let mean = sum / count as f64;
+    mean
+}
+
+// Calculates the standard deviation for a vector of values.
+pub fn std_deviation(data: &[f64]) -> f64 {
+    let data_mean = mean(data);
+    let count = data.len();
+    let variance = data.iter().map(|value| {
+        let diff = data_mean - (*value as f64);
+        diff * diff
+    }).sum::<f64>() / count as f64;
+    variance.sqrt()
+}
+
 
 #[derive(Serialize)]
 struct Row {
@@ -70,15 +90,21 @@ struct Row {
     approach: String,
     scope: String,
     top_1: f64,
+    top_1_std: f64,
     top_10: f64,
+    top_10_std: f64,
     top_10_percent: f64,
+    top_10_percent_std: f64,
 }
 
 pub fn write_to_file(
     config: &Config,
     top_1: f64,
+    top_1_std: f64,
     top_10: f64,
+    top_10_std: f64,
     top_10_percent: f64,
+    top_10_percent_std: f64,
 ) -> Result<(), Box<dyn Error>> {
     let file = std::fs::OpenOptions::new()
         .write(true)
@@ -89,29 +115,32 @@ pub fn write_to_file(
 
     let mut wtr = WriterBuilder::new()
         .delimiter(b',')
-        .has_headers(false)
+        .has_headers(true)
         .from_writer(file);
 
     wtr.serialize(Row {
         delay_limit: config.delay_limit,
-        fields: format!("{:?}", &config.fields),
         max_click_trace_len: config.max_click_trace_len,
         min_click_trace_len: config.min_click_trace_len,
         max_click_trace_duration: config.max_click_trace_duration,
         min_num_click_traces: config.min_num_click_traces,
         client_sample_size: config.client_sample_size,
         click_trace_sample_size: config.click_trace_sample_size,
-        metric: config.metric.to_string(),
         path: config.path.to_string(),
         seed: config.seed,
+        approach: config.approach.to_string(),
+        fields: format!("{:?}", &config.fields),
         typical: config.typical,
+        metric: config.metric.to_string(),
         strategy: config.strategy.to_string(),
         scoring_matrix: format!("{:?}", &config.scoring_matrix),
-        approach: config.approach.to_string(),
         scope: config.scope.to_string(),
         top_1: top_1,
+        top_1_std: top_1_std,
         top_10: top_10,
+        top_10_std: top_10_std,
         top_10_percent: top_10_percent,
+        top_10_percent_std: top_10_percent_std,
     })?;
     Ok(())
 }
