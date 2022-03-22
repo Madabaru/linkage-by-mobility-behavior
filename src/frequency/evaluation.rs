@@ -1,9 +1,9 @@
 use crate::cli;
 use crate::frequency::{
-    mobility_trace,
-    mobility_trace::{FreqMobilityTrace, VectFreqMobilityTrace},
     metrics,
     metrics::DistanceMetric,
+    mobility_trace,
+    mobility_trace::{FreqMobilityTrace, VectFreqMobilityTrace},
 };
 use crate::parse::DataFields;
 use crate::utils;
@@ -22,7 +22,7 @@ pub fn eval(
     client_to_freq_map: &BTreeMap<u32, Vec<FreqMobilityTrace>>,
     client_to_target_idx_map: &HashMap<u32, Vec<usize>>,
     client_to_sample_idx_map: &HashMap<u32, Vec<usize>>,
-    client_to_test_idx_map: &HashMap<u32, usize>
+    client_to_test_idx_map: &HashMap<u32, usize>,
 ) {
     let result_list: Vec<(bool, bool, bool)> = client_to_target_idx_map
         .par_iter()
@@ -33,7 +33,7 @@ pub fn eval(
                 &target_idx_list,
                 &client_to_freq_map,
                 &client_to_sample_idx_map,
-                &client_to_test_idx_map
+                &client_to_test_idx_map,
             )
         })
         .collect();
@@ -65,13 +65,22 @@ pub fn eval(
     log::info!("Top 10: {:?}", top_10);
     let top_10_percent: f64 = utils::mean(&top_10_percent_list);
     log::info!("Top 10 Percent: {:?}", top_10_percent);
-    
+
     let top_1_std = utils::std_deviation(&top_1_list);
     let top_10_std = utils::std_deviation(&top_10_list);
     let top_10_percent_std = utils::std_deviation(&top_10_percent_list);
-    
+
     // Write metrics to final evaluation file
-    utils::write_to_file(config, top_1, top_1_std, top_10, top_10_std, top_10_percent, top_10_percent_std).expect("Error writing to evaluation file.");
+    utils::write_to_file(
+        config,
+        top_1,
+        top_1_std,
+        top_10,
+        top_10_std,
+        top_10_percent,
+        top_10_percent_std,
+    )
+    .expect("Error writing to evaluation file.");
 }
 
 fn eval_step(
@@ -80,22 +89,21 @@ fn eval_step(
     target_idx_list: &Vec<usize>,
     client_to_freq_map: &BTreeMap<u32, Vec<FreqMobilityTrace>>,
     client_to_sample_idx_map: &HashMap<u32, Vec<usize>>,
-    client_to_test_idx_map: &HashMap<u32, usize>
+    client_to_test_idx_map: &HashMap<u32, usize>,
 ) -> (bool, bool, bool) {
-
     let metric = DistanceMetric::from_str(&config.metric).unwrap();
     let mut result_map: HashMap<u32, OrderedFloat<f64>> = HashMap::new();
-    let mut result_tuples: Vec<(u32, OrderedFloat<f64>)> = Vec::with_capacity(client_to_freq_map.len());
+    let mut result_tuples: Vec<(u32, OrderedFloat<f64>)> =
+        Vec::with_capacity(client_to_freq_map.len());
 
     for target_idx in target_idx_list.into_iter() {
         let target_mobility_trace = client_to_freq_map
-        .get(client_target)
-        .unwrap()
-        .get(*target_idx)
-        .unwrap();
+            .get(client_target)
+            .unwrap()
+            .get(*target_idx)
+            .unwrap();
 
         for (client, mobility_traces) in client_to_freq_map.into_iter() {
-            
             let samples_idx = client_to_sample_idx_map.get(client).unwrap();
             let sampled_mobility_traces: Vec<FreqMobilityTrace> = samples_idx
                 .into_iter()
@@ -160,15 +168,14 @@ fn eval_step(
                 &street_set,
                 &postcode_set,
                 &state_set,
-                &highway_set, 
-                &hamlet_set, 
+                &highway_set,
+                &hamlet_set,
                 &suburb_set,
                 &village_set,
-                &location_code_set,        
+                &location_code_set,
             );
 
-            if config.typical && !config.dependent  {
-                
+            if config.typical && !config.dependent {
                 let vect_typ_ref_mobility_trace = mobility_trace::gen_typical_vect_mobility_trace(
                     &sampled_mobility_traces,
                     &speed_set,
@@ -176,8 +183,8 @@ fn eval_step(
                     &street_set,
                     &postcode_set,
                     &state_set,
-                    &highway_set, 
-                    &hamlet_set, 
+                    &highway_set,
+                    &hamlet_set,
                     &suburb_set,
                     &village_set,
                     &location_code_set,
@@ -189,9 +196,7 @@ fn eval_step(
                     &vect_typ_ref_mobility_trace,
                 );
                 result_tuples.push((client.clone(), OrderedFloat(dist)));
-            
             } else if !config.typical && !config.dependent {
-
                 for sample_mobility_trace in sampled_mobility_traces.into_iter() {
                     let vect_ref_mobility_trace = mobility_trace::vectorize_mobility_trace(
                         &sample_mobility_trace,
@@ -200,21 +205,24 @@ fn eval_step(
                         &street_set,
                         &postcode_set,
                         &state_set,
-                        &highway_set, 
-                        &hamlet_set, 
+                        &highway_set,
+                        &hamlet_set,
                         &suburb_set,
                         &village_set,
                         &location_code_set,
                     );
-                    let dist =
-                        compute_dist(&config.fields, &metric, &vect_target_mobility_trace, &vect_ref_mobility_trace);
+                    let dist = compute_dist(
+                        &config.fields,
+                        &metric,
+                        &vect_target_mobility_trace,
+                        &vect_ref_mobility_trace,
+                    );
                     result_tuples.push((client.clone(), OrderedFloat(dist)));
                 }
-
             } else {
-
                 let test_idx: usize = client_to_test_idx_map.get(client).unwrap().clone();
-                let mobility_trace: FreqMobilityTrace = mobility_traces.get(test_idx).unwrap().clone();
+                let mobility_trace: FreqMobilityTrace =
+                    mobility_traces.get(test_idx).unwrap().clone();
                 let vect_ref_mobility_trace = mobility_trace::vectorize_mobility_trace(
                     &mobility_trace,
                     &speed_set,
@@ -222,15 +230,21 @@ fn eval_step(
                     &street_set,
                     &postcode_set,
                     &state_set,
-                    &highway_set, 
-                    &hamlet_set, 
+                    &highway_set,
+                    &hamlet_set,
                     &suburb_set,
                     &village_set,
                     &location_code_set,
                 );
-                let dist =
-                    compute_dist(&config.fields, &metric, &vect_target_mobility_trace, &vect_ref_mobility_trace);
-                *result_map.entry(client.clone()).or_insert(OrderedFloat(0.0)) += OrderedFloat(dist);
+                let dist = compute_dist(
+                    &config.fields,
+                    &metric,
+                    &vect_target_mobility_trace,
+                    &vect_ref_mobility_trace,
+                );
+                *result_map
+                    .entry(client.clone())
+                    .or_insert(OrderedFloat(0.0)) += OrderedFloat(dist);
             }
         }
     }
@@ -244,12 +258,8 @@ fn eval_step(
     let is_top_10_percent = utils::is_target_in_top_k(client_target, &result_tuples[..cutoff]);
     let is_top_10: bool = utils::is_target_in_top_k(client_target, &result_tuples[..10]);
     let is_top_1: bool = client_target.clone() == result_tuples[0].0;
-    (
-        is_top_1,
-        is_top_10,
-        is_top_10_percent,
-    )
-    }
+    (is_top_1, is_top_10, is_top_10_percent)
+}
 
 // Calculate the distance between the target and the reference click trace
 fn compute_dist<T, U>(
@@ -314,12 +324,15 @@ where
                 target_mobility_trace.village.clone(),
                 ref_mobility_trace.village.clone(),
             ),
-            DataFields::Day => (target_mobility_trace.day.clone(), ref_mobility_trace.day.clone()),
+            DataFields::Day => (
+                target_mobility_trace.day.clone(),
+                ref_mobility_trace.day.clone(),
+            ),
             DataFields::Hour => (
                 target_mobility_trace.hour.clone(),
                 ref_mobility_trace.hour.clone(),
             ),
-            DataFields::LocationCode =>      (           
+            DataFields::LocationCode => (
                 target_mobility_trace.location_code.clone(),
                 ref_mobility_trace.location_code.clone(),
             ),
@@ -329,10 +342,16 @@ where
             DistanceMetric::Euclidean => metrics::euclidean_dist(target_vector, ref_vector),
             DistanceMetric::Manhattan => metrics::manhattan_dist(target_vector, ref_vector),
             DistanceMetric::Cosine => metrics::consine_dist(target_vector, ref_vector),
-            DistanceMetric::NonIntersection => metrics::non_intersection_dist(target_vector, ref_vector),
+            DistanceMetric::NonIntersection => {
+                metrics::non_intersection_dist(target_vector, ref_vector)
+            }
             DistanceMetric::Bhattacharyya => metrics::bhattacharyya_dist(target_vector, ref_vector),
-            DistanceMetric::KullbrackLeibler => metrics::kullbrack_leibler_dist(target_vector, ref_vector),
-            DistanceMetric::TotalVariation => metrics::total_variation_dist(target_vector, ref_vector),
+            DistanceMetric::KullbrackLeibler => {
+                metrics::kullbrack_leibler_dist(target_vector, ref_vector)
+            }
+            DistanceMetric::TotalVariation => {
+                metrics::total_variation_dist(target_vector, ref_vector)
+            }
             DistanceMetric::JeffriesMatusita => metrics::jeffries_dist(target_vector, ref_vector),
             DistanceMetric::ChiSquared => metrics::chi_squared_dist(target_vector, ref_vector),
         };
@@ -359,7 +378,11 @@ pub fn get_unique_set(
         DataFields::Hamlet => target_mobility_trace.hamlet.keys().cloned().collect(),
         DataFields::Suburb => target_mobility_trace.suburb.keys().cloned().collect(),
         DataFields::Village => target_mobility_trace.village.keys().cloned().collect(),
-        DataFields::LocationCode => target_mobility_trace.location_code.keys().cloned().collect(),
+        DataFields::LocationCode => target_mobility_trace
+            .location_code
+            .keys()
+            .cloned()
+            .collect(),
         _ => panic!("Error: unknown data field supplied: {}", field),
     };
 
