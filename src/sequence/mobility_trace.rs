@@ -1,7 +1,7 @@
 use crate::utils;
 
 #[derive(Debug, Clone)]
-pub struct SeqClickTrace {
+pub struct SeqMobilityTrace {
     pub speed: Vec<u32>,
     pub heading: Vec<u32>,
     pub street: Vec<u32>,
@@ -18,19 +18,19 @@ pub struct SeqClickTrace {
     pub location_code: Vec<u32>,
 }
 
-pub fn gen_typical_click_trace(click_traces: &Vec<SeqClickTrace>) -> SeqClickTrace {
-    // Get length of typical click trace by majority vote
-    let lengths: Vec<usize> = click_traces.iter().map(|cl| cl.speed.len()).collect();
+pub fn gen_typical_mobility_trace(mobility_traces: &Vec<SeqMobilityTrace>) -> SeqMobilityTrace {
+    // Get length of typical mobility trace by majority vote
+    let lengths: Vec<usize> = mobility_traces.iter().map(|cl| cl.speed.len()).collect();
     let typical_length = utils::get_most_freq_element(&lengths);
 
     // Get typical day
-    let days: Vec<u32> = click_traces.iter().map(|cl| cl.day).collect();
+    let days: Vec<u32> = mobility_traces.iter().map(|cl| cl.day).collect();
     let typical_day = utils::get_most_freq_element(&days);
 
     // Get typical speed
     let mut typical_speeds: Vec<u32> = vec![0; typical_length];
     for (i, x) in typical_speeds.iter_mut().enumerate() {
-        let speeds: Vec<u32> = click_traces
+        let speeds: Vec<u32> = mobility_traces
             .iter()
             .filter(|cl| cl.speed.len() > i)
             .map(|cl| cl.speed[i])
@@ -42,7 +42,7 @@ pub fn gen_typical_click_trace(click_traces: &Vec<SeqClickTrace>) -> SeqClickTra
     // Get typical heading
     let mut typical_headings: Vec<u32> = vec![0; typical_length];
     for (i, x) in typical_headings.iter_mut().enumerate() {
-        let headings: Vec<u32> = click_traces
+        let headings: Vec<u32> = mobility_traces
             .iter()
             .filter(|cl| cl.heading.len() > i)
             .map(|cl| cl.heading[i])
@@ -54,7 +54,7 @@ pub fn gen_typical_click_trace(click_traces: &Vec<SeqClickTrace>) -> SeqClickTra
     // Get typical street
     let mut typical_streets: Vec<u32> = vec![0; typical_length];
     for (i, x) in typical_streets.iter_mut().enumerate() {
-        let streets: Vec<u32> = click_traces
+        let streets: Vec<u32> = mobility_traces
             .iter()
             .filter(|cl| cl.street.len() > i)
             .map(|cl| cl.street[i])
@@ -66,7 +66,7 @@ pub fn gen_typical_click_trace(click_traces: &Vec<SeqClickTrace>) -> SeqClickTra
     // Get typical state
     let mut typical_states: Vec<u32> = vec![0; typical_length];
     for (i, x) in typical_states.iter_mut().enumerate() {
-        let states: Vec<u32> = click_traces
+        let states: Vec<u32> = mobility_traces
             .iter()
             .filter(|cl| cl.state.len() > i)
             .map(|cl| cl.state[i])
@@ -78,7 +78,7 @@ pub fn gen_typical_click_trace(click_traces: &Vec<SeqClickTrace>) -> SeqClickTra
     // Get typical postcode
     let mut typical_postcodes: Vec<u32> = vec![0; typical_length];
     for (i, x) in typical_postcodes.iter_mut().enumerate() {
-        let postcodes: Vec<u32> = click_traces
+        let postcodes: Vec<u32> = mobility_traces
             .iter()
             .filter(|cl| cl.postcode.len() > i)
             .map(|cl| cl.postcode[i])
@@ -90,7 +90,7 @@ pub fn gen_typical_click_trace(click_traces: &Vec<SeqClickTrace>) -> SeqClickTra
     // Get typical hour
     let mut typical_hours: Vec<u32> = vec![0; typical_length];
     for (i, x) in typical_hours.iter_mut().enumerate() {
-        let hours: Vec<u32> = click_traces
+        let hours: Vec<u32> = mobility_traces
             .iter()
             .filter(|cl| cl.hour.len() > i)
             .map(|cl| cl.hour[i])
@@ -102,7 +102,7 @@ pub fn gen_typical_click_trace(click_traces: &Vec<SeqClickTrace>) -> SeqClickTra
     // Get typical highway
     let mut typical_highways: Vec<u32> = vec![0; typical_length];
     for (i, x) in typical_highways.iter_mut().enumerate() {
-        let highways: Vec<u32> = click_traces
+        let highways: Vec<u32> = mobility_traces
             .iter()
             .filter(|cl| cl.highway.len() > i)
             .map(|cl| cl.highway[i])
@@ -114,7 +114,7 @@ pub fn gen_typical_click_trace(click_traces: &Vec<SeqClickTrace>) -> SeqClickTra
     // Get typical hamlet
     let mut typical_hamlets: Vec<u32> = vec![0; typical_length];
     for (i, x) in typical_hamlets.iter_mut().enumerate() {
-        let hamlets: Vec<u32> = click_traces
+        let hamlets: Vec<u32> = mobility_traces
             .iter()
             .filter(|cl| cl.hamlet.len() > i)
             .map(|cl| cl.hamlet[i])
@@ -126,7 +126,7 @@ pub fn gen_typical_click_trace(click_traces: &Vec<SeqClickTrace>) -> SeqClickTra
     // Get typical suburb
     let mut typical_suburbs: Vec<u32> = vec![0; typical_length];
     for (i, x) in typical_suburbs.iter_mut().enumerate() {
-        let suburbs: Vec<u32> = click_traces
+        let suburbs: Vec<u32> = mobility_traces
             .iter()
             .filter(|cl| cl.suburb.len() > i)
             .map(|cl| cl.suburb[i])
@@ -138,7 +138,7 @@ pub fn gen_typical_click_trace(click_traces: &Vec<SeqClickTrace>) -> SeqClickTra
     // Get typical village
     let mut typical_villages: Vec<u32> = vec![0; typical_length];
     for (i, x) in typical_villages.iter_mut().enumerate() {
-        let villages: Vec<u32> = click_traces
+        let villages: Vec<u32> = mobility_traces
             .iter()
             .filter(|cl| cl.village.len() > i)
             .map(|cl| cl.village[i])
@@ -150,7 +150,7 @@ pub fn gen_typical_click_trace(click_traces: &Vec<SeqClickTrace>) -> SeqClickTra
     // Get typical location code
     let mut typical_location_codes: Vec<u32> = vec![0; typical_length];
     for (i, x) in typical_location_codes.iter_mut().enumerate() {
-        let location_codes: Vec<u32> = click_traces
+        let location_codes: Vec<u32> = mobility_traces
             .iter()
             .filter(|cl| cl.location_code.len() > i)
             .map(|cl| cl.location_code[i])
@@ -160,7 +160,7 @@ pub fn gen_typical_click_trace(click_traces: &Vec<SeqClickTrace>) -> SeqClickTra
     }
 
     // Create typical click trace from typical values
-    let typical_click_trace = SeqClickTrace {
+    let typical_mobility_trace = SeqMobilityTrace {
         street: typical_streets,
         postcode: typical_postcodes,
         state: typical_states,
@@ -176,20 +176,20 @@ pub fn gen_typical_click_trace(click_traces: &Vec<SeqClickTrace>) -> SeqClickTra
         heading: typical_headings,
         location_code: typical_location_codes,
     };
-    typical_click_trace
+    typical_mobility_trace
 }
 
-pub fn reverse_click_trace(click_trace: &SeqClickTrace) -> SeqClickTrace {
-    let mut reverse_click_trace = click_trace.clone();
-    reverse_click_trace.speed.reverse();
-    reverse_click_trace.heading.reverse();
-    reverse_click_trace.street.reverse();
-    reverse_click_trace.postcode.reverse();
-    reverse_click_trace.state.reverse();
-    reverse_click_trace.location_code.reverse();
-    reverse_click_trace.highway.reverse();
-    reverse_click_trace.hamlet.reverse();
-    reverse_click_trace.village.reverse();
-    reverse_click_trace.village.reverse();
-    reverse_click_trace
+pub fn reverse_mobility_trace(mobility_trace: &SeqMobilityTrace) -> SeqMobilityTrace {
+    let mut reverse_mobility_trace = mobility_trace.clone();
+    reverse_mobility_trace.speed.reverse();
+    reverse_mobility_trace.heading.reverse();
+    reverse_mobility_trace.street.reverse();
+    reverse_mobility_trace.postcode.reverse();
+    reverse_mobility_trace.state.reverse();
+    reverse_mobility_trace.location_code.reverse();
+    reverse_mobility_trace.highway.reverse();
+    reverse_mobility_trace.hamlet.reverse();
+    reverse_mobility_trace.village.reverse();
+    reverse_mobility_trace.village.reverse();
+    reverse_mobility_trace
 }

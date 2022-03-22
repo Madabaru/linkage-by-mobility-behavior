@@ -6,16 +6,18 @@ use std::str::FromStr;
 pub struct Config {
     pub delay_limit: f64,
     pub fields: Vec<DataFields>,
-    pub max_click_trace_len: usize,
-    pub min_click_trace_len: usize,
-    pub max_click_trace_duration: f64,
-    pub min_num_click_traces: usize,
+    pub max_mobility_trace_len: usize,
+    pub min_mobility_trace_len: usize,
+    pub max_mobility_trace_duration: f64,
+    pub min_num_mobility_traces: usize,
     pub client_sample_size: usize,
-    pub click_trace_sample_size: usize,
+    pub mobility_trace_sample_size: usize,
+    pub target_mobility_trace_sample_size: usize,
     pub metric: String,
     pub path: String,
     pub seed: u64,
     pub typical: bool,
+    pub dependent: bool, 
     pub strategy: String,
     pub scoring_matrix: Vec<isize>,
     pub approach: String,
@@ -72,26 +74,26 @@ pub fn get_cli_config() -> Result<Config, clap::Error> {
                 .default_values(&["speed", "street", "postcode", "suburb", "village", "hamlet", "highway"])
         )
         .arg(
-            clap::Arg::new("max_click_trace_len")
-                .long("max_click_trace_len")
+            clap::Arg::new("max_mobility_trace_len")
+                .long("max_mobility_trace_len")
                 .default_value("1000")
                 .about("Maximum length of a single click trace."),
         )
         .arg(
-            clap::Arg::new("min_click_trace_len")
-                .long("min_click_trace_len")
+            clap::Arg::new("min_mobility_trace_len")
+                .long("min_mobility_trace_len")
                 .default_value("10")
                 .about("Minimum length of a single click trace."),
         )
         .arg(
-            clap::Arg::new("max_click_trace_duration")
-                .long("max_click_trace_duration")
+            clap::Arg::new("max_mobility_trace_duration")
+                .long("max_mobility_trace_duration")
                 .default_value("86400.0")
                 .about("Maximum duration of a single click trace."),
         )
         .arg(
-            clap::Arg::new("min_num_click_traces")
-                .long("min_num_click_traces")
+            clap::Arg::new("min_num_mobility_traces")
+                .long("min_num_mobility_traces")
                 .default_value("4")
                 .about("Minimum number of click traces per client."),
         )
@@ -102,10 +104,16 @@ pub fn get_cli_config() -> Result<Config, clap::Error> {
                 .about("Number of clients to sample."),
         )
         .arg(
-            clap::Arg::new("click_trace_sample_size")
-                .long("click_trace_sample_size")
+            clap::Arg::new("mobility_trace_sample_size")
+                .long("mobility_trace_sample_size")
                 .default_value("20")
                 .about("Number of click traces to sample per client"),
+        )
+        .arg(
+            clap::Arg::new("target_mobility_trace_sample_size")
+                .long("target_mobility_trace_sample_size")
+                .default_value("1")
+                .about("Number of target mobility traces per client."),
         )
         .arg(
             clap::Arg::new("metric")
@@ -133,6 +141,12 @@ pub fn get_cli_config() -> Result<Config, clap::Error> {
                 .about("Set to true if you want to compute a typical click trace (session) per client.")
         )
         .arg(
+            clap::Arg::new("dependent")
+                .long("dependent")
+                .default_value("false")
+                .about("Set true of the linkage attacks are dependent on each other.")
+        )
+        .arg(
             clap::Arg::new("reverse")
                 .long("reverse")
                 .default_value("false")
@@ -150,8 +164,8 @@ pub fn get_cli_config() -> Result<Config, clap::Error> {
             .value_of("metric")
             .map(String::from)
             .unwrap_or_default(),
-        max_click_trace_len: matches
-            .value_of("max_click_trace_len")
+        max_mobility_trace_len: matches
+            .value_of("max_mobility_trace_len")
             .unwrap_or_default()
             .parse::<usize>()
             .unwrap(),
@@ -161,8 +175,8 @@ pub fn get_cli_config() -> Result<Config, clap::Error> {
             .iter()
             .map(|x| DataFields::from_str(x).unwrap())
             .collect(),
-        click_trace_sample_size: matches
-            .value_of("click_trace_sample_size")
+        mobility_trace_sample_size: matches
+            .value_of("mobility_trace_sample_size")
             .unwrap_or_default()
             .parse::<usize>()
             .unwrap(),
@@ -171,18 +185,23 @@ pub fn get_cli_config() -> Result<Config, clap::Error> {
             .unwrap_or_default()
             .parse::<usize>()
             .unwrap(),
-        max_click_trace_duration: matches
-            .value_of("max_click_trace_duration")
-            .unwrap_or_default()
-            .parse::<f64>()
-            .unwrap(),
-        min_click_trace_len: matches
-            .value_of("min_click_trace_len")
+        target_mobility_trace_sample_size: matches
+            .value_of("target_mobility_trace_sample_size")
             .unwrap_or_default()
             .parse::<usize>()
             .unwrap(),
-        min_num_click_traces: matches
-            .value_of("min_num_click_traces")
+        max_mobility_trace_duration: matches
+            .value_of("max_mobility_trace_duration")
+            .unwrap_or_default()
+            .parse::<f64>()
+            .unwrap(),
+        min_mobility_trace_len: matches
+            .value_of("min_mobility_trace_len")
+            .unwrap_or_default()
+            .parse::<usize>()
+            .unwrap(),
+        min_num_mobility_traces: matches
+            .value_of("min_num_mobility_traces")
             .unwrap_or_default()
             .parse::<usize>()
             .unwrap(),
@@ -197,6 +216,11 @@ pub fn get_cli_config() -> Result<Config, clap::Error> {
             .unwrap(),
         typical: matches
             .value_of("typical")
+            .unwrap_or_default()
+            .parse::<bool>()
+            .unwrap(),
+        dependent: matches
+            .value_of("dependent")
             .unwrap_or_default()
             .parse::<bool>()
             .unwrap(),

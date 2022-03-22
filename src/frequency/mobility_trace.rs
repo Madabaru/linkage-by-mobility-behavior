@@ -5,7 +5,7 @@ use indexmap::IndexSet;
 use std::collections::HashMap;
 
 #[derive(Debug, Clone)]
-pub struct FreqClickTrace {
+pub struct FreqMobilityTrace {
     pub speed: HashMap<String, u32>,
     pub heading: HashMap<String, u32>,
     pub street: HashMap<String, u32>,
@@ -23,7 +23,7 @@ pub struct FreqClickTrace {
 }
 
 #[derive(Debug, Clone)]
-pub struct VectFreqClickTrace<T> {
+pub struct VectFreqMobilityTrace<T> {
     pub speed: Vec<T>,
     pub heading: Vec<T>,
     pub street: Vec<T>,
@@ -38,8 +38,8 @@ pub struct VectFreqClickTrace<T> {
     pub location_code: Vec<T>,
 }
 
-pub fn gen_typical_vect_click_trace(
-    click_traces: &Vec<FreqClickTrace>,
+pub fn gen_typical_vect_mobility_trace(
+    mobility_traces: &Vec<FreqMobilityTrace>,
     speed_set: &IndexSet<String>,
     heading_set: &IndexSet<String>,
     street_set: &IndexSet<String>,
@@ -50,7 +50,7 @@ pub fn gen_typical_vect_click_trace(
     suburb_set: &IndexSet<String>,
     village_set: &IndexSet<String>,
     location_code_set: &IndexSet<String>,
-) -> VectFreqClickTrace<f64> {
+) -> VectFreqMobilityTrace<f64> {
     let mut speed_vec = maths::zeros_f64(speed_set.len());
     let mut heading_vec = maths::zeros_f64(heading_set.len());
     let mut street_vec = maths::zeros_f64(street_set.len());
@@ -64,9 +64,9 @@ pub fn gen_typical_vect_click_trace(
     let mut hour_vec = maths::zeros_f64(24);
     let mut day_vec = maths::zeros_f64(7);
 
-    for click_trace in click_traces.into_iter() {
-        let vect_click_trace = vectorize_click_trace(
-            click_trace,
+    for mobility_trace in mobility_traces.into_iter() {
+        let vect_mobility_trace = vectorize_mobility_trace(
+            mobility_trace,
             speed_set,
             heading_set,
             street_set,
@@ -78,18 +78,18 @@ pub fn gen_typical_vect_click_trace(
             village_set,
             location_code_set,
         );
-        speed_vec = maths::add(speed_vec, &vect_click_trace.speed);
-        heading_vec = maths::add(heading_vec, &vect_click_trace.heading);
-        street_vec = maths::add(street_vec, &vect_click_trace.street);
-        postcode_vec = maths::add(postcode_vec, &vect_click_trace.postcode);
-        state_vec = maths::add(state_vec, &vect_click_trace.state);
-        highway_vec = maths::add(highway_vec, &vect_click_trace.highway);
-        hamlet_vec = maths::add(hamlet_vec, &vect_click_trace.hamlet);
-        suburb_vec = maths::add(suburb_vec, &vect_click_trace.suburb);
-        village_vec = maths::add(village_vec, &vect_click_trace.village);
-        location_code_vec = maths::add(location_code_vec, &vect_click_trace.location_code);
-        day_vec = maths::add(day_vec, &vect_click_trace.day);
-        hour_vec = maths::add(hour_vec, &vect_click_trace.hour);
+        speed_vec = maths::add(speed_vec, &vect_mobility_trace.speed);
+        heading_vec = maths::add(heading_vec, &vect_mobility_trace.heading);
+        street_vec = maths::add(street_vec, &vect_mobility_trace.street);
+        postcode_vec = maths::add(postcode_vec, &vect_mobility_trace.postcode);
+        state_vec = maths::add(state_vec, &vect_mobility_trace.state);
+        highway_vec = maths::add(highway_vec, &vect_mobility_trace.highway);
+        hamlet_vec = maths::add(hamlet_vec, &vect_mobility_trace.hamlet);
+        suburb_vec = maths::add(suburb_vec, &vect_mobility_trace.suburb);
+        village_vec = maths::add(village_vec, &vect_mobility_trace.village);
+        location_code_vec = maths::add(location_code_vec, &vect_mobility_trace.location_code);
+        day_vec = maths::add(day_vec, &vect_mobility_trace.day);
+        hour_vec = maths::add(hour_vec, &vect_mobility_trace.hour);
     }
 
     let speed_len = speed_vec.len() as f64;
@@ -119,7 +119,7 @@ pub fn gen_typical_vect_click_trace(
     let day_len = day_vec.len() as f64;
     day_vec.iter_mut().for_each(|a| *a /= day_len);
 
-    let typical_vect_click_trace = VectFreqClickTrace {
+    let typical_vect_mobility_trace = VectFreqMobilityTrace {
         speed: speed_vec,
         heading: heading_vec,
         street: street_vec,
@@ -133,12 +133,12 @@ pub fn gen_typical_vect_click_trace(
         village: village_vec,
         location_code: location_code_vec,
     };
-    typical_vect_click_trace
+    typical_vect_mobility_trace
 }
 
 // Transform each histogram (as a hashmap) in a click trace into a vector to speed up further computations
-pub fn vectorize_click_trace(
-    click_trace: &FreqClickTrace,
+pub fn vectorize_mobility_trace(
+    mobility_trace: &FreqMobilityTrace,
     speed_set: &IndexSet<String>,
     heading_set: &IndexSet<String>,
     street_set: &IndexSet<String>,
@@ -149,23 +149,23 @@ pub fn vectorize_click_trace(
     suburb_set: &IndexSet<String>,
     village_set: &IndexSet<String>,
     location_code_set: &IndexSet<String>,
-) -> VectFreqClickTrace<u32> {
-    let vectorized_click_trace = VectFreqClickTrace {
-        speed: utils::gen_vector_from_freq_map(&click_trace.speed, speed_set),
-        heading: utils::gen_vector_from_freq_map(&click_trace.heading, heading_set),
-        street: utils::gen_vector_from_freq_map(&click_trace.street, street_set),
-        postcode: utils::gen_vector_from_freq_map(&click_trace.postcode, postcode_set),
-        state: utils::gen_vector_from_freq_map(&click_trace.state, state_set),
-        highway: utils::gen_vector_from_freq_map(&click_trace.highway, highway_set),
-        hamlet: utils::gen_vector_from_freq_map(&click_trace.hamlet, hamlet_set),
-        suburb: utils::gen_vector_from_freq_map(&click_trace.suburb, suburb_set),
-        village: utils::gen_vector_from_freq_map(&click_trace.village, village_set),
+) -> VectFreqMobilityTrace<u32> {
+    let vectorized_mobility_trace = VectFreqMobilityTrace {
+        speed: utils::gen_vector_from_freq_map(&mobility_trace.speed, speed_set),
+        heading: utils::gen_vector_from_freq_map(&mobility_trace.heading, heading_set),
+        street: utils::gen_vector_from_freq_map(&mobility_trace.street, street_set),
+        postcode: utils::gen_vector_from_freq_map(&mobility_trace.postcode, postcode_set),
+        state: utils::gen_vector_from_freq_map(&mobility_trace.state, state_set),
+        highway: utils::gen_vector_from_freq_map(&mobility_trace.highway, highway_set),
+        hamlet: utils::gen_vector_from_freq_map(&mobility_trace.hamlet, hamlet_set),
+        suburb: utils::gen_vector_from_freq_map(&mobility_trace.suburb, suburb_set),
+        village: utils::gen_vector_from_freq_map(&mobility_trace.village, village_set),
         location_code: utils::gen_vector_from_freq_map(
-            &click_trace.location_code,
+            &mobility_trace.location_code,
             location_code_set,
         ),
-        day: click_trace.hour.clone(),
-        hour: click_trace.day.clone(),
+        day: mobility_trace.hour.clone(),
+        hour: mobility_trace.day.clone(),
     };
-    vectorized_click_trace
+    vectorized_mobility_trace
 }

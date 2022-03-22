@@ -29,15 +29,11 @@ pub fn gen_vector_from_freq_map(
 }
 
 
-
-pub fn is_target_in_top_k(client_target: &u32, tuples: &[(OrderedFloat<f64>, u32)]) -> bool {
-    tuples.iter().any(|(_, b)| b == client_target)
+pub fn is_target_in_top_k(client_target: &u32, tuples: &[(u32, OrderedFloat<f64>)]) -> bool {
+    tuples.iter().any(|(a, _)| a == client_target)
 }
 
-// Returns the most frequent element in a given vector of values.
-//
-// Returns the most frequent element in a given vector of values. 
-// The values can be of arbitrary value.
+// Returns the most frequent element in a given vector of values. The values can be of arbitrary type.
 pub fn get_most_freq_element<T>(vector: &[T]) -> T
 where
     T: std::cmp::Eq + std::hash::Hash + Copy,
@@ -74,17 +70,19 @@ pub fn std_deviation(data: &[f64]) -> f64 {
 #[derive(Serialize)]
 struct Row {
     delay_limit: f64,
-    max_click_trace_len: usize,
-    min_click_trace_len: usize,
-    max_click_trace_duration: f64,
-    min_num_click_traces: usize,
+    max_mobility_trace_len: usize,
+    min_mobility_trace_len: usize,
+    max_mobility_trace_duration: f64,
+    min_num_mobility_traces: usize,
     path: String,
     seed: u64,
     client_sample_size: usize,
-    click_trace_sample_size: usize,
+    mobility_trace_sample_size: usize,
+    target_mobility_trace_sample_size: usize,
     approach: String,
     fields: String,
     typical: bool,
+    dependent: bool,
     metric: String,
     strategy: String,
     scoring_matrix: String,
@@ -120,17 +118,19 @@ pub fn write_to_file(
 
     wtr.serialize(Row {
         delay_limit: config.delay_limit,
-        max_click_trace_len: config.max_click_trace_len,
-        min_click_trace_len: config.min_click_trace_len,
-        max_click_trace_duration: config.max_click_trace_duration,
-        min_num_click_traces: config.min_num_click_traces,
+        max_mobility_trace_len: config.max_mobility_trace_len,
+        min_mobility_trace_len: config.min_mobility_trace_len,
+        max_mobility_trace_duration: config.max_mobility_trace_duration,
+        min_num_mobility_traces: config.min_num_mobility_traces,
         client_sample_size: config.client_sample_size,
-        click_trace_sample_size: config.click_trace_sample_size,
+        mobility_trace_sample_size: config.mobility_trace_sample_size,
+        target_mobility_trace_sample_size: config.target_mobility_trace_sample_size,
         path: config.path.to_string(),
         seed: config.seed,
         approach: config.approach.to_string(),
         fields: format!("{:?}", &config.fields),
         typical: config.typical,
+        dependent: config.dependent,
         metric: config.metric.to_string(),
         strategy: config.strategy.to_string(),
         scoring_matrix: format!("{:?}", &config.scoring_matrix),
