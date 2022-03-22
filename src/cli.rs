@@ -43,21 +43,21 @@ pub fn get_cli_config() -> Result<Config, clap::Error> {
                 .allow_hyphen_values(true)
                 .about("The scoring matrix to use for the alignment approach: ['equal', 'align', 'insert', 'delete'].")
                 .multiple_values(true)
-                .default_values(&["1", "-1", "0", "0"])
+                .default_values(&["1", "-1", "-1", "-1"])
         )
         .arg(
             clap::Arg::new("scope")
                 .long("scope")
                 .about("The scope of the alignment algorithm: local or global.")
                 .possible_values(&["local", "global"])
-                .default_value("local"),
+                .default_value("global"),
         )
         .arg(
             clap::Arg::new("strategy")
                 .long("strategy")
                 .about("The alignment strategy to use.")
                 .possible_values(&["sw", "nw"])
-                .default_value("sw"),
+                .default_value("nw"),
         )
         .arg(
             clap::Arg::new("delay_limit")
@@ -71,12 +71,12 @@ pub fn get_cli_config() -> Result<Config, clap::Error> {
                 .possible_values(&["speed", "heading", "street", "postcode", "state", "hour", "day", "highway", "hamlet", "suburb", "village", "location_code"])
                 .about("Data fields to consider for the analysis.")
                 .multiple_values(true)
-                .default_values(&["speed", "street", "postcode", "suburb", "village", "hamlet", "highway"])
+                .default_values(&["speed", "street", "postcode", "suburb", "village"])
         )
         .arg(
             clap::Arg::new("max_mobility_trace_len")
                 .long("max_mobility_trace_len")
-                .default_value("1000")
+                .default_value("500")
                 .about("Maximum length of a single click trace."),
         )
         .arg(
@@ -106,7 +106,7 @@ pub fn get_cli_config() -> Result<Config, clap::Error> {
         .arg(
             clap::Arg::new("mobility_trace_sample_size")
                 .long("mobility_trace_sample_size")
-                .default_value("20")
+                .default_value("500")
                 .about("Number of click traces to sample per client"),
         )
         .arg(
@@ -118,7 +118,7 @@ pub fn get_cli_config() -> Result<Config, clap::Error> {
         .arg(
             clap::Arg::new("metric")
                 .long("metric")
-                .default_value("kullbrack_leibler")
+                .default_value("euclidean")
                 .about("Distance metric to compare a pair of click traces.")
                 .possible_values(&["euclidean", "manhattan", "cosine", "non_intersection", "bhattacharyya", "kullbrack_leibler", "total_variation", "jeffries_matusita", "chi_quared"]),
         )

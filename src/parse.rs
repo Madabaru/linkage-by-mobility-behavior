@@ -1,5 +1,5 @@
 use crate::cli::Config;
-use crate::frequency::{mobility_trace::FreqMobilityTrace, maths};
+use crate::frequency::{maths, mobility_trace::FreqMobilityTrace};
 use crate::sequence::mobility_trace::SeqMobilityTrace;
 
 use chrono::{prelude::DateTime, Datelike, Timelike, Utc};
