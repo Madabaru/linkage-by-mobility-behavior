@@ -6,13 +6,13 @@ use std::str::FromStr;
 pub struct Config {
     pub delay_limit: f64,
     pub fields: Vec<DataFields>,
-    pub max_mobility_trace_len: usize,
-    pub min_mobility_trace_len: usize,
-    pub max_mobility_trace_duration: f64,
-    pub min_num_mobility_traces: usize,
-    pub client_sample_size: usize,
-    pub mobility_trace_sample_size: usize,
-    pub target_mobility_trace_sample_size: usize,
+    pub max_trace_len: usize,
+    pub min_trace_len: usize,
+    pub max_trace_duration: f64,
+    pub min_num_traces: usize,
+    pub user_sample_size: usize,
+    pub trace_sample_size: usize,
+    pub target_trace_sample_size: usize,
     pub metric: String,
     pub path: String,
     pub seed: u64,
@@ -62,7 +62,7 @@ pub fn get_cli_config() -> Result<Config, clap::Error> {
         .arg(
             clap::Arg::new("delay_limit")
                 .long("delay_limit")
-                .about("Maximum delay between two consecutive clicks.")
+                .about("Maximum delay between two consecutive s.")
                 .default_value("1800.0"),
         )
         .arg(
@@ -74,52 +74,52 @@ pub fn get_cli_config() -> Result<Config, clap::Error> {
                 .default_values(&["speed", "street", "postcode", "suburb", "village"])
         )
         .arg(
-            clap::Arg::new("max_mobility_trace_len")
-                .long("max_mobility_trace_len")
+            clap::Arg::new("max_trace_len")
+                .long("max_trace_len")
                 .default_value("500")
-                .about("Maximum length of a single click trace."),
+                .about("Maximum length of a single trace."),
         )
         .arg(
-            clap::Arg::new("min_mobility_trace_len")
-                .long("min_mobility_trace_len")
+            clap::Arg::new("min_trace_len")
+                .long("min_trace_len")
                 .default_value("10")
-                .about("Minimum length of a single click trace."),
+                .about("Minimum length of a single trace."),
         )
         .arg(
-            clap::Arg::new("max_mobility_trace_duration")
-                .long("max_mobility_trace_duration")
+            clap::Arg::new("max_trace_duration")
+                .long("max_trace_duration")
                 .default_value("86400.0")
-                .about("Maximum duration of a single click trace."),
+                .about("Maximum duration of a single trace."),
         )
         .arg(
-            clap::Arg::new("min_num_mobility_traces")
-                .long("min_num_mobility_traces")
+            clap::Arg::new("min_num_traces")
+                .long("min_num_traces")
                 .default_value("4")
-                .about("Minimum number of click traces per client."),
+                .about("Minimum number of traces per user."),
         )
         .arg(
-            clap::Arg::new("client_sample_size")
-                .long("client_sample_size")
+            clap::Arg::new("user_sample_size")
+                .long("user_sample_size")
                 .default_value("400")
                 .about("Number of clients to sample."),
         )
         .arg(
-            clap::Arg::new("mobility_trace_sample_size")
-                .long("mobility_trace_sample_size")
+            clap::Arg::new("trace_sample_size")
+                .long("trace_sample_size")
                 .default_value("500")
-                .about("Number of click traces to sample per client"),
+                .about("Number of traces to sample per user"),
         )
         .arg(
-            clap::Arg::new("target_mobility_trace_sample_size")
-                .long("target_mobility_trace_sample_size")
+            clap::Arg::new("target_trace_sample_size")
+                .long("target_trace_sample_size")
                 .default_value("1")
-                .about("Number of target mobility traces per client."),
+                .about("Number of target traces per user."),
         )
         .arg(
             clap::Arg::new("metric")
                 .long("metric")
                 .default_value("euclidean")
-                .about("Distance metric to compare a pair of click traces.")
+                .about("Distance metric to compare a pair of  traces.")
                 .possible_values(&["euclidean", "manhattan", "cosine", "non_intersection", "bhattacharyya", "kullbrack_leibler", "total_variation", "jeffries_matusita", "chi_quared"]),
         )
         .arg(
@@ -138,7 +138,7 @@ pub fn get_cli_config() -> Result<Config, clap::Error> {
             clap::Arg::new("typical")
                 .long("typical")
                 .default_value("false")
-                .about("Set to true if you want to compute a typical click trace (session) per client.")
+                .about("Set to true if you want to compute a typical trace (session) per user.")
         )
         .arg(
             clap::Arg::new("dependent")
@@ -164,8 +164,8 @@ pub fn get_cli_config() -> Result<Config, clap::Error> {
             .value_of("metric")
             .map(String::from)
             .unwrap_or_default(),
-        max_mobility_trace_len: matches
-            .value_of("max_mobility_trace_len")
+        max_trace_len: matches
+            .value_of("max_trace_len")
             .unwrap_or_default()
             .parse::<usize>()
             .unwrap(),
@@ -175,33 +175,33 @@ pub fn get_cli_config() -> Result<Config, clap::Error> {
             .iter()
             .map(|x| DataFields::from_str(x).unwrap())
             .collect(),
-        mobility_trace_sample_size: matches
-            .value_of("mobility_trace_sample_size")
+        trace_sample_size: matches
+            .value_of("trace_sample_size")
             .unwrap_or_default()
             .parse::<usize>()
             .unwrap(),
-        client_sample_size: matches
-            .value_of("client_sample_size")
+        user_sample_size: matches
+            .value_of("user_sample_size")
             .unwrap_or_default()
             .parse::<usize>()
             .unwrap(),
-        target_mobility_trace_sample_size: matches
-            .value_of("target_mobility_trace_sample_size")
+        target_trace_sample_size: matches
+            .value_of("target_trace_sample_size")
             .unwrap_or_default()
             .parse::<usize>()
             .unwrap(),
-        max_mobility_trace_duration: matches
-            .value_of("max_mobility_trace_duration")
+        max_trace_duration: matches
+            .value_of("max_trace_duration")
             .unwrap_or_default()
             .parse::<f64>()
             .unwrap(),
-        min_mobility_trace_len: matches
-            .value_of("min_mobility_trace_len")
+        min_trace_len: matches
+            .value_of("min_trace_len")
             .unwrap_or_default()
             .parse::<usize>()
             .unwrap(),
-        min_num_mobility_traces: matches
-            .value_of("min_num_mobility_traces")
+        min_num_traces: matches
+            .value_of("min_num_traces")
             .unwrap_or_default()
             .parse::<usize>()
             .unwrap(),

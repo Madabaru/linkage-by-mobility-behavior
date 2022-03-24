@@ -1,2 +1,2 @@
-pub mod mobility_trace;
+pub mod trace;
 pub mod evaluation;

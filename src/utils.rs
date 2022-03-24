@@ -8,6 +8,7 @@ use std::{collections::HashMap, error::Error};
 
 const EVAL_PATH: &str = "tmp/evaluation";
 
+/// Normalizes the values of a given vector.
 pub fn normalize_vector(vector: &mut [f64]) {
     let norm = vector.iter().map(|x| *x * *x).sum::<f64>().sqrt();
     if norm > 0. {
@@ -17,6 +18,7 @@ pub fn normalize_vector(vector: &mut [f64]) {
     }
 }
 
+/// Generates a vector of fixed size from a given frequency map. The size depends on the size set of unique values.
 pub fn gen_vector_from_freq_map(
     type_to_freq_map: &HashMap<String, u32>,
     set: &IndexSet<String>,
@@ -28,12 +30,12 @@ pub fn gen_vector_from_freq_map(
     vector
 }
 
-
-pub fn is_target_in_top_k(client_target: &u32, tuples: &[(u32, OrderedFloat<f64>)]) -> bool {
-    tuples.iter().any(|(a, _)| a == client_target)
+/// Returns true if the target value can be found in the top k of values.
+pub fn is_target_in_top_k(user_target: &u32, tuples: &[(u32, OrderedFloat<f64>)]) -> bool {
+    tuples.iter().any(|(a, _)| a == user_target)
 }
 
-// Returns the most frequent element in a given vector of values. The values can be of arbitrary type.
+/// Returns the most frequent element in a given vector of values. The values can be of arbitrary type.
 pub fn get_most_freq_element<T>(vector: &[T]) -> T
 where
     T: std::cmp::Eq + std::hash::Hash + Copy,
@@ -47,7 +49,7 @@ where
     most_frequent_ele
 }
 
-// Calculates the mean for a vector of values.
+/// Calculates the mean for a vector of values.
 pub fn mean(data: &[f64]) -> f64 {
     let sum = data.iter().sum::<f64>();
     let count = data.len();
@@ -55,7 +57,7 @@ pub fn mean(data: &[f64]) -> f64 {
     mean
 }
 
-// Calculates the standard deviation for a vector of values.
+/// Calculates the standard deviation for a vector of values.
 pub fn std_deviation(data: &[f64]) -> f64 {
     let data_mean = mean(data);
     let count = data.len();
@@ -70,15 +72,15 @@ pub fn std_deviation(data: &[f64]) -> f64 {
 #[derive(Serialize)]
 struct Row {
     delay_limit: f64,
-    max_mobility_trace_len: usize,
-    min_mobility_trace_len: usize,
-    max_mobility_trace_duration: f64,
-    min_num_mobility_traces: usize,
+    max_trace_len: usize,
+    min_trace_len: usize,
+    max_trace_duration: f64,
+    min_num_traces: usize,
     path: String,
     seed: u64,
-    client_sample_size: usize,
-    mobility_trace_sample_size: usize,
-    target_mobility_trace_sample_size: usize,
+    user_sample_size: usize,
+    trace_sample_size: usize,
+    target_trace_sample_size: usize,
     approach: String,
     fields: String,
     typical: bool,
@@ -95,6 +97,7 @@ struct Row {
     top_10_percent_std: f64,
 }
 
+/// Writes the performance scores as well as the configuration to file.
 pub fn write_to_file(
     config: &Config,
     top_1: f64,
@@ -118,13 +121,13 @@ pub fn write_to_file(
 
     wtr.serialize(Row {
         delay_limit: config.delay_limit,
-        max_mobility_trace_len: config.max_mobility_trace_len,
-        min_mobility_trace_len: config.min_mobility_trace_len,
-        max_mobility_trace_duration: config.max_mobility_trace_duration,
-        min_num_mobility_traces: config.min_num_mobility_traces,
-        client_sample_size: config.client_sample_size,
-        mobility_trace_sample_size: config.mobility_trace_sample_size,
-        target_mobility_trace_sample_size: config.target_mobility_trace_sample_size,
+        max_trace_len: config.max_trace_len,
+        min_trace_len: config.min_trace_len,
+        max_trace_duration: config.max_trace_duration,
+        min_num_traces: config.min_num_traces,
+        user_sample_size: config.user_sample_size,
+        trace_sample_size: config.trace_sample_size,
+        target_trace_sample_size: config.target_trace_sample_size,
         path: config.path.to_string(),
         seed: config.seed,
         approach: config.approach.to_string(),

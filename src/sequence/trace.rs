@@ -1,7 +1,7 @@
 use crate::utils;
 
 #[derive(Debug, Clone)]
-pub struct SeqMobilityTrace {
+pub struct SeqTrace {
     pub speed: Vec<u32>,
     pub heading: Vec<u32>,
     pub street: Vec<u32>,
@@ -18,19 +18,23 @@ pub struct SeqMobilityTrace {
     pub location_code: Vec<u32>,
 }
 
-pub fn gen_typical_mobility_trace(mobility_traces: &Vec<SeqMobilityTrace>) -> SeqMobilityTrace {
+/// Generates a typical trace from a given list of traces.
+/// 
+/// The length of the typical trace is determined by majority vote, i.e. the length of the majority in the list of traces.
+/// Likewise, the individual values of each data field are specified by majority vote.
+pub fn gen_typical_trace(traces: &Vec<SeqTrace>) -> SeqTrace {
     // Get length of typical mobility trace by majority vote
-    let lengths: Vec<usize> = mobility_traces.iter().map(|cl| cl.speed.len()).collect();
+    let lengths: Vec<usize> = traces.iter().map(|cl| cl.speed.len()).collect();
     let typical_length = utils::get_most_freq_element(&lengths);
 
     // Get typical day
-    let days: Vec<u32> = mobility_traces.iter().map(|cl| cl.day).collect();
+    let days: Vec<u32> = traces.iter().map(|cl| cl.day).collect();
     let typical_day = utils::get_most_freq_element(&days);
 
     // Get typical speed
     let mut typical_speeds: Vec<u32> = vec![0; typical_length];
     for (i, x) in typical_speeds.iter_mut().enumerate() {
-        let speeds: Vec<u32> = mobility_traces
+        let speeds: Vec<u32> = traces
             .iter()
             .filter(|cl| cl.speed.len() > i)
             .map(|cl| cl.speed[i])
@@ -42,7 +46,7 @@ pub fn gen_typical_mobility_trace(mobility_traces: &Vec<SeqMobilityTrace>) -> Se
     // Get typical heading
     let mut typical_headings: Vec<u32> = vec![0; typical_length];
     for (i, x) in typical_headings.iter_mut().enumerate() {
-        let headings: Vec<u32> = mobility_traces
+        let headings: Vec<u32> = traces
             .iter()
             .filter(|cl| cl.heading.len() > i)
             .map(|cl| cl.heading[i])
@@ -54,7 +58,7 @@ pub fn gen_typical_mobility_trace(mobility_traces: &Vec<SeqMobilityTrace>) -> Se
     // Get typical street
     let mut typical_streets: Vec<u32> = vec![0; typical_length];
     for (i, x) in typical_streets.iter_mut().enumerate() {
-        let streets: Vec<u32> = mobility_traces
+        let streets: Vec<u32> = traces
             .iter()
             .filter(|cl| cl.street.len() > i)
             .map(|cl| cl.street[i])
@@ -66,7 +70,7 @@ pub fn gen_typical_mobility_trace(mobility_traces: &Vec<SeqMobilityTrace>) -> Se
     // Get typical state
     let mut typical_states: Vec<u32> = vec![0; typical_length];
     for (i, x) in typical_states.iter_mut().enumerate() {
-        let states: Vec<u32> = mobility_traces
+        let states: Vec<u32> = traces
             .iter()
             .filter(|cl| cl.state.len() > i)
             .map(|cl| cl.state[i])
@@ -78,7 +82,7 @@ pub fn gen_typical_mobility_trace(mobility_traces: &Vec<SeqMobilityTrace>) -> Se
     // Get typical postcode
     let mut typical_postcodes: Vec<u32> = vec![0; typical_length];
     for (i, x) in typical_postcodes.iter_mut().enumerate() {
-        let postcodes: Vec<u32> = mobility_traces
+        let postcodes: Vec<u32> = traces
             .iter()
             .filter(|cl| cl.postcode.len() > i)
             .map(|cl| cl.postcode[i])
@@ -90,7 +94,7 @@ pub fn gen_typical_mobility_trace(mobility_traces: &Vec<SeqMobilityTrace>) -> Se
     // Get typical hour
     let mut typical_hours: Vec<u32> = vec![0; typical_length];
     for (i, x) in typical_hours.iter_mut().enumerate() {
-        let hours: Vec<u32> = mobility_traces
+        let hours: Vec<u32> = traces
             .iter()
             .filter(|cl| cl.hour.len() > i)
             .map(|cl| cl.hour[i])
@@ -102,7 +106,7 @@ pub fn gen_typical_mobility_trace(mobility_traces: &Vec<SeqMobilityTrace>) -> Se
     // Get typical highway
     let mut typical_highways: Vec<u32> = vec![0; typical_length];
     for (i, x) in typical_highways.iter_mut().enumerate() {
-        let highways: Vec<u32> = mobility_traces
+        let highways: Vec<u32> = traces
             .iter()
             .filter(|cl| cl.highway.len() > i)
             .map(|cl| cl.highway[i])
@@ -114,7 +118,7 @@ pub fn gen_typical_mobility_trace(mobility_traces: &Vec<SeqMobilityTrace>) -> Se
     // Get typical hamlet
     let mut typical_hamlets: Vec<u32> = vec![0; typical_length];
     for (i, x) in typical_hamlets.iter_mut().enumerate() {
-        let hamlets: Vec<u32> = mobility_traces
+        let hamlets: Vec<u32> = traces
             .iter()
             .filter(|cl| cl.hamlet.len() > i)
             .map(|cl| cl.hamlet[i])
@@ -126,7 +130,7 @@ pub fn gen_typical_mobility_trace(mobility_traces: &Vec<SeqMobilityTrace>) -> Se
     // Get typical suburb
     let mut typical_suburbs: Vec<u32> = vec![0; typical_length];
     for (i, x) in typical_suburbs.iter_mut().enumerate() {
-        let suburbs: Vec<u32> = mobility_traces
+        let suburbs: Vec<u32> = traces
             .iter()
             .filter(|cl| cl.suburb.len() > i)
             .map(|cl| cl.suburb[i])
@@ -138,7 +142,7 @@ pub fn gen_typical_mobility_trace(mobility_traces: &Vec<SeqMobilityTrace>) -> Se
     // Get typical village
     let mut typical_villages: Vec<u32> = vec![0; typical_length];
     for (i, x) in typical_villages.iter_mut().enumerate() {
-        let villages: Vec<u32> = mobility_traces
+        let villages: Vec<u32> = traces
             .iter()
             .filter(|cl| cl.village.len() > i)
             .map(|cl| cl.village[i])
@@ -150,7 +154,7 @@ pub fn gen_typical_mobility_trace(mobility_traces: &Vec<SeqMobilityTrace>) -> Se
     // Get typical location code
     let mut typical_location_codes: Vec<u32> = vec![0; typical_length];
     for (i, x) in typical_location_codes.iter_mut().enumerate() {
-        let location_codes: Vec<u32> = mobility_traces
+        let location_codes: Vec<u32> = traces
             .iter()
             .filter(|cl| cl.location_code.len() > i)
             .map(|cl| cl.location_code[i])
@@ -160,7 +164,7 @@ pub fn gen_typical_mobility_trace(mobility_traces: &Vec<SeqMobilityTrace>) -> Se
     }
 
     // Create typical click trace from typical values
-    let typical_mobility_trace = SeqMobilityTrace {
+    let typical_trace = SeqTrace {
         street: typical_streets,
         postcode: typical_postcodes,
         state: typical_states,
@@ -176,20 +180,21 @@ pub fn gen_typical_mobility_trace(mobility_traces: &Vec<SeqMobilityTrace>) -> Se
         heading: typical_headings,
         location_code: typical_location_codes,
     };
-    typical_mobility_trace
+    typical_trace
 }
 
-pub fn reverse_mobility_trace(mobility_trace: &SeqMobilityTrace) -> SeqMobilityTrace {
-    let mut reverse_mobility_trace = mobility_trace.clone();
-    reverse_mobility_trace.speed.reverse();
-    reverse_mobility_trace.heading.reverse();
-    reverse_mobility_trace.street.reverse();
-    reverse_mobility_trace.postcode.reverse();
-    reverse_mobility_trace.state.reverse();
-    reverse_mobility_trace.location_code.reverse();
-    reverse_mobility_trace.highway.reverse();
-    reverse_mobility_trace.hamlet.reverse();
-    reverse_mobility_trace.village.reverse();
-    reverse_mobility_trace.village.reverse();
-    reverse_mobility_trace
+/// Transforms the given trace by means of reversing the values of each data field.
+pub fn reverse_trace(trace: &SeqTrace) -> SeqTrace {
+    let mut reverse_trace = trace.clone();
+    reverse_trace.speed.reverse();
+    reverse_trace.heading.reverse();
+    reverse_trace.street.reverse();
+    reverse_trace.postcode.reverse();
+    reverse_trace.state.reverse();
+    reverse_trace.location_code.reverse();
+    reverse_trace.highway.reverse();
+    reverse_trace.hamlet.reverse();
+    reverse_trace.village.reverse();
+    reverse_trace.village.reverse();
+    reverse_trace
 }
