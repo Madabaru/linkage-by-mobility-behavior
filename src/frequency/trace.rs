@@ -166,8 +166,8 @@ pub fn vectorize_trace(
         suburb: utils::gen_vector_from_freq_map(&trace.suburb, suburb_set),
         village: utils::gen_vector_from_freq_map(&trace.village, village_set),
         location_code: utils::gen_vector_from_freq_map(&trace.location_code, location_code_set),
-        day: trace.hour.clone(),
-        hour: trace.day.clone(),
+        day: trace.day.clone(),
+        hour: trace.hour.clone(),
     };
     vectorized_trace
 }
