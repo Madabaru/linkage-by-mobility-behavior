@@ -9,6 +9,7 @@ Installation:
 ```
 $ git clone https://github.com/Madabaru/linkage-by-mobility-behavior.git
 $ cd ..
+$ mkdir tmp
 $ cargo build --release && ./target/release/linkage-by-mobility-behavior
 ```
 For help regarding the available parameters, simply run:
